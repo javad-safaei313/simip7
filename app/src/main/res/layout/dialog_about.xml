@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_dialog"
+    android:gravity="center_horizontal">
+
+    <!-- Optional: App Icon -->
+    <ImageView
+        android:id="@+id/ivAppIconAbout"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@mipmap/ic_launcher_round"
+        android:contentDescription="@string/app_name"
+        android:layout_marginBottom="@dimen/spacing_medium"/>
+
+    <!-- App Name -->
+    <TextView
+        android:id="@+id/tvAppNameAbout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:layout_marginBottom="@dimen/spacing_extra_small"/>
+
+    <!-- App Version -->
+    <TextView
+        android:id="@+id/tvAppVersionAbout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="@string/app_version_placeholder"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="@dimen/spacing_medium"/>
+
+    <!-- Company Name -->
+    <TextView
+        android:id="@+id/tvCompanyNameAbout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/company_name"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:layout_marginBottom="@dimen/spacing_extra_small"/>
+
+    <!-- Copyright -->
+    <TextView
+        android:id="@+id/tvCopyrightAbout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/copyright_text"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="@dimen/spacing_large"/>
+
+
+    <!-- Close Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCloseAbout"
+        style="@style/Widget.Simip.DialogButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_ok"/> <!-- Using OK as Close button -->
+
+</LinearLayout>

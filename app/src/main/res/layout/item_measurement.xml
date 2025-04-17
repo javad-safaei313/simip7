@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Root layout width is wrap_content to allow horizontal scrolling -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="@dimen/padding_item"
+    android:paddingBottom="@dimen/padding_item"
+    android:paddingStart="@dimen/spacing_small"
+    android:paddingEnd="@dimen/spacing_small"
+    android:background="?attr/selectableItemBackground"> <!-- For click feedback -->
+
+    <!-- Define TextView for each column. Widths should be consistent. -->
+    <!-- Using fixed widths or weights in a TableLayout/GridLayout might be more robust for alignment,
+         but using fixed widths here for simplicity. Adjust widths as needed. -->
+
+    <!-- Column: Number (#) -->
+    <TextView
+        android:id="@+id/item_tv_number"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:maxLines="1"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="10"/>
+
+    <!-- Geometry Columns (Visibility controlled by Adapter based on project type) -->
+
+    <!-- Sholom Geometry -->
+    <TextView
+        android:id="@+id/item_tv_sholom_ab2"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="1000.0"/>
+    <TextView
+        android:id="@+id/item_tv_sholom_mn2"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="75.0"/>
+    <TextView
+        android:id="@+id/item_tv_sholom_x0"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="0.0"/>
+
+    <!-- Other Geometries -->
+    <TextView
+        android:id="@+id/item_tv_other_tx0"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:visibility="gone"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="-inf"/>
+    <TextView
+        android:id="@+id/item_tv_other_tx1"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:visibility="gone"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="0.0"/>
+    <TextView
+        android:id="@+id/item_tv_other_rx0"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:visibility="gone"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="10.0"/>
+    <TextView
+        android:id="@+id/item_tv_other_rx1"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:visibility="gone"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="inf"/>
+
+    <!-- Measurement Columns -->
+    <TextView
+        android:id="@+id/item_tv_dv"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="1234.567"/>
+
+    <TextView
+        android:id="@+id/item_tv_i"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        tools:text="500.1"/>
+
+    <TextView
+        android:id="@+id/item_tv_roh"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        android:textStyle="bold"
+        android:background="?attr/editTextBackground"
+    android:padding="2dp"
+    tools:text="250.3"/>
+
+    <TextView
+        android:id="@+id/item_tv_ip"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        android:textStyle="bold"
+        android:background="?attr/editTextBackground"
+    android:padding="2dp"
+    tools:text="15.8"/>
+
+    <TextView
+        android:id="@+id/item_tv_contact"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        tools:text="1.5"/>
+
+    <!-- Add more TextViews if other columns from the spec need to be displayed -->
+    <!-- e.g., SP, Battery, Temp, Stack, Time, GPS etc. if required in the list -->
+
+</LinearLayout>

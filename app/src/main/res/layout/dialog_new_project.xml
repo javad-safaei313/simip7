@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_dialog">
+
+    <!-- Project Name Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputLayoutNewProjectName"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/hint_project_name">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etNewProjectName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords|textNoSuggestions"
+            android:maxLines="1" />
+        <!-- inputType="textCapWords" for auto-capitalization -->
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Project Type Selector -->
+    <TextView
+        android:id="@+id/tvLabelProjectType"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_medium"
+        android:text="@string/label_project_type"
+        android:labelFor="@id/spinnerProjectType"
+        android:textColor="?attr/colorOnSurfaceVariant"/>
+
+    <Spinner
+        android:id="@+id/spinnerProjectType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_extra_small"
+        android:minHeight="@dimen/edittext_height"
+        android:entries="@array/project_type_array"
+        style="@android:style/Widget.Spinner"/>
+
+    <!-- Last Project Info -->
+    <LinearLayout
+        android:id="@+id/layoutLastProject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/margin_large"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvLabelLastProject"
+            style="@style/Widget.Simip.TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_last_project"
+            android:textColor="?attr/colorOnSurfaceVariant"/>
+
+        <TextView
+            android:id="@+id/tvLastProjectName"
+            style="@style/Widget.Simip.TextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/spacing_small"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="@dimen/spacing_extra_small"
+            android:paddingBottom="@dimen/spacing_extra_small"
+            tools:text="MyPreviousProject (sholom)"/>
+
+    </LinearLayout>
+
+    <!-- Dialog Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/spacing_extra_large"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelNewProject"
+            style="@style/Widget.Simip.DialogButton.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/spacing_small"
+            android:text="@string/button_cancel"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOkNewProject"
+            style="@style/Widget.Simip.DialogButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_ok"/>
+
+    </LinearLayout>
+
+</LinearLayout>

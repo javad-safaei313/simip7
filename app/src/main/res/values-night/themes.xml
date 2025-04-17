@@ -1,0 +1,64 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme (Dark Theme) -->
+    <style name="Theme.Simip" parent="Theme.Material3.Dark.NoActionBar"> <!-- Use Dark Parent -->
+
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
+
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/md_theme_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_onSecondaryContainer</item>
+
+        <!-- Tertiary brand color. -->
+        <item name="colorTertiary">@color/md_theme_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_onTertiaryContainer</item>
+
+        <!-- Error color. -->
+        <item name="colorError">@color/md_theme_error</item>
+        <item name="colorOnError">@color/md_theme_onError</item>
+        <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
+
+        <!-- Background and Surface colors -->
+        <item name="android:colorBackground">@color/md_theme_background</item>
+        <item name="colorOnBackground">@color/md_theme_onBackground</item>
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOnSurface">@color/md_theme_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md_theme_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_onSurfaceVariant</item>
+
+        <!-- Outline color -->
+        <item name="colorOutline">@color/md_theme_outline</item>
+        <item name="colorOutlineVariant">@color/md_theme_outlineVariant</item>
+
+        <!-- Inverse colors -->
+        <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_inverseOnSurface</item>
+        <item name="colorPrimaryInverse">@color/md_theme_inversePrimary</item>
+
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/simip_statusbar_background</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item> <!-- Light icons on dark status bar -->
+
+        <!-- Component styles reference the same style names as the light theme. -->
+        <item name="materialButtonStyle">@style/Widget.Simip.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Simip.Button.OutlinedButton</item>
+        <item name="toolbarStyle">@style/Widget.Simip.Toolbar</item>
+        <item name="tabStyle">@style/Widget.Simip.TabLayout</item>
+        <item name="android:textViewStyle">@style/Widget.Simip.TextView</item>
+        <item name="android:editTextStyle">@style/Widget.Simip.EditText</item>
+        <item name="materialAlertDialogTheme">@style/Theme.Simip.AlertDialog</item>
+
+    </style>
+
+    <!-- Widget styles are usually defined in the base values/themes.xml -->
+    <!-- They adapt automatically based on the resolved colors -->
+
+</resources>

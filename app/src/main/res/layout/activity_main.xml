@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.main.MainActivity">
+
+    <!-- AppBarLayout holds Toolbar and potentially other views like TabLayout -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="?attr/actionBarTheme"> <!-- Use theme attribute for potential overlays -->
+
+        <!-- Main Toolbar -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            style="@style/Widget.Simip.Toolbar"
+        app:title="@string/app_name"
+        app:menu="@menu/main_menu" />
+        <!-- Language selector will be added programmatically or via menu item -->
+
+        <!-- Custom Status Bar -->
+        <LinearLayout
+            android:id="@+id/statusBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/spacing_medium"
+            android:paddingEnd="@dimen/spacing_medium"
+            android:paddingTop="@dimen/spacing_extra_small"
+            android:paddingBottom="@dimen/spacing_extra_small"
+            android:background="@color/simip_statusbar_background"
+            android:gravity="center_vertical">
+
+            <!-- Connection Status Text -->
+            <TextView
+                android:id="@+id/tvStatusConnection"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/simip_statusbar_text"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="@string/status_searching"/>
+
+            <!-- Real-time Values Separator -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="?attr/colorOutline"
+                android:layout_marginStart="@dimen/spacing_small"
+                android:layout_marginEnd="@dimen/spacing_small"/>
+
+            <!-- V_MN -->
+            <TextView
+                android:id="@+id/tvStatusVMN"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/simip_statusbar_text"
+                android:maxLines="1"
+                android:layout_marginEnd="@dimen/spacing_small"
+                tools:text="V_MN: 123.456 mV"/>
+
+            <!-- Battery -->
+            <TextView
+                android:id="@+id/tvStatusBattery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/simip_statusbar_text"
+                android:maxLines="1"
+                android:layout_marginEnd="@dimen/spacing_small"
+                tools:text="Bat: 12.3 V"/>
+
+            <!-- Temperature -->
+            <TextView
+                android:id="@+id/tvStatusTemp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/simip_statusbar_text"
+                android:maxLines="1"
+                tools:text="Temp: 25.5 °C"/>
+
+        </LinearLayout>
+
+        <!-- TabLayout for main navigation (Acq, DList, Analysis) -->
+        <!-- Visibility is initially GONE, shown only when a project is open -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tab_height"
+            style="@style/Widget.Simip.TabLayout"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:tabMode="fixed"
+            app:tabGravity="fill"/>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- ViewPager2 to host the fragments -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    <!-- layout_behavior ensures ViewPager scrolls correctly with AppBarLayout -->
+
+    <!-- Optional: Add a FrameLayout here if you need to overlay dialog fragments
+         or other views on top of the ViewPager. -->
+    <!-- <FrameLayout
+        android:id="@+id/dialog_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" /> -->
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

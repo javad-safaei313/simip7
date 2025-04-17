@@ -1,0 +1,172 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme (Light Theme) -->
+    <style name="Theme.Simip" parent="Theme.Material3.Light.NoActionBar"> <!-- Use NoActionBar if using Toolbar -->
+
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
+
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/md_theme_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_onSecondaryContainer</item>
+
+        <!-- Tertiary brand color. -->
+        <item name="colorTertiary">@color/md_theme_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_onTertiaryContainer</item>
+
+        <!-- Error color. -->
+        <item name="colorError">@color/md_theme_error</item>
+        <item name="colorOnError">@color/md_theme_onError</item>
+        <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
+
+        <!-- Background and Surface colors -->
+        <item name="android:colorBackground">@color/md_theme_background</item>
+        <item name="colorOnBackground">@color/md_theme_onBackground</item>
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOnSurface">@color/md_theme_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md_theme_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_onSurfaceVariant</item>
+
+        <!-- Outline color -->
+        <item name="colorOutline">@color/md_theme_outline</item>
+        <item name="colorOutlineVariant">@color/md_theme_outlineVariant</item>
+
+        <!-- Inverse colors -->
+        <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_inverseOnSurface</item>
+        <item name="colorPrimaryInverse">@color/md_theme_inversePrimary</item>
+
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/simip_statusbar_background</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item> <!-- Dark icons on light status bar -->
+
+        <!-- Customize component styles here -->
+        <item name="materialButtonStyle">@style/Widget.Simip.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Simip.Button.OutlinedButton</item>
+        <item name="toolbarStyle">@style/Widget.Simip.Toolbar</item>
+        <item name="tabStyle">@style/Widget.Simip.TabLayout</item>
+        <item name="android:textViewStyle">@style/Widget.Simip.TextView</item>
+        <item name="android:editTextStyle">@style/Widget.Simip.EditText</item>
+        <item name="materialAlertDialogTheme">@style/Theme.Simip.AlertDialog</item>
+
+    </style>
+
+    <!-- Custom styles referenced by the theme -->
+
+    <!-- Base Toolbar Style -->
+    <style name="Widget.Simip.Toolbar" parent="Widget.Material3.Toolbar.Surface">
+        <item name="android:background">@color/simip_toolbar_background</item>
+        <item name="titleTextColor">@color/simip_toolbar_text</item>
+        <item name="subtitleTextColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- TabLayout Style -->
+    <style name="Widget.Simip.TabLayout" parent="Widget.Material3.TabLayout">
+        <item name="tabIndicatorColor">@color/simip_tab_indicator</item>
+        <item name="tabTextColor">@color/simip_tab_text_unselected</item>
+        <item name="tabSelectedTextColor">@color/simip_tab_text_selected</item>
+        <item name="android:background">?attr/colorSurface</item>
+    </style>
+
+
+    <!-- Default TextView Style Widget.Material3.TextView-->
+    <style name="Widget.Simip.TextView" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textSize">@dimen/text_size_body</item>
+    </style>
+
+    <!-- Default EditText Style -->
+    <style name="Widget.Simip.EditText" parent="Widget.Material3.TextInputEditText.OutlinedBox">
+        <item name="android:paddingStart">@dimen/spacing_medium</item>
+        <item name="android:paddingEnd">@dimen/spacing_medium</item>
+        <item name="android:paddingTop">@dimen/spacing_small</item>
+        <item name="android:paddingBottom">@dimen/spacing_small</item>
+        <item name="android:minHeight">@dimen/edittext_height</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textColorHint">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+
+    <!-- Base Button Style (Common attributes for all Simip buttons) -->
+    <style name="Widget.Simip.Button.Base" parent="Widget.Material3.Button.UnelevatedButton">
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:paddingStart">@dimen/padding_button_horizontal</item>
+        <item name="android:paddingEnd">@dimen/padding_button_horizontal</item>
+        <item name="android:paddingTop">@dimen/padding_button_vertical</item>
+        <item name="android:paddingBottom">@dimen/padding_button_vertical</item>
+        <item name="android:textAppearance">@style/TextAppearance.Simip.Button</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Simip.Button.Pill</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- Default Simip Button (Outlined) -->
+    <style name="Widget.Simip.Button.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:paddingStart">@dimen/padding_button_horizontal</item>
+        <item name="android:paddingEnd">@dimen/padding_button_horizontal</item>
+        <item name="android:paddingTop">@dimen/padding_button_vertical</item>
+        <item name="android:paddingBottom">@dimen/padding_button_vertical</item>
+        <item name="android:textAppearance">@style/TextAppearance.Simip.Button</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Simip.Button.Pill</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="strokeColor">@color/simip_button_outlined_stroke</item>
+        <item name="android:textColor">@color/simip_button_outlined_text</item>
+        <item name="rippleColor">@color/simip_button_outlined_text</item>
+    </style>
+
+    <!-- Filled Simip Button (e.g., Start Button) -->
+    <!-- Note: materialButtonStyle in the main theme points here by default -->
+    <style name="Widget.Simip.Button" parent="Widget.Simip.Button.Base">
+        <item name="android:backgroundTint">@color/simip_button_filled_background</item>
+        <item name="android:textColor">@color/simip_button_filled_text</item>
+        <!-- Corrected rippleColor for light theme filled button -->
+        <item name="rippleColor">@color/md_theme_onPrimary</item>
+    </style>
+
+    <!-- Button TextAppearance -->
+    <style name="TextAppearance.Simip.Button" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">@dimen/text_size_subhead</item>
+    </style>
+
+    <!-- Shape Appearance for Pill Buttons -->
+    <style name="ShapeAppearance.Simip.Button.Pill" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/corner_radius_button</item>
+    </style>
+
+    <!-- Alert Dialog Theme -->
+    <style name="Theme.Simip.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="alertDialogStyle">@style/MaterialAlertDialog.Simip</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Simip.DialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Simip.DialogButton.Outlined</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.Simip.DialogButton.Text</item>
+    </style>
+
+    <style name="MaterialAlertDialog.Simip" parent="MaterialAlertDialog.Material3">
+        <item name="shapeAppearance">@style/ShapeAppearance.Simip.Dialog</item>
+        <item name="backgroundTint">?attr/colorSurface</item>
+    </style>
+
+    <style name="ShapeAppearance.Simip.Dialog" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">@dimen/corner_radius_dialog</item>
+    </style>
+
+    <!-- Dialog Button Styles -->
+    <style name="Widget.Simip.DialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
+    </style>
+    <style name="Widget.Simip.DialogButton.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Simip.Button.Pill</item>
+    </style>
+    <style name="Widget.Simip.DialogButton.Text" parent="Widget.Material3.Button.TextButton.Dialog">
+    </style>
+
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sholomberje Geometries (AB/2, MN/2) as specified in the requirements -->
+    <!-- Format: "AB/2_value,MN/2_value" -->
+    <string-array name="sholom_geometries_array">
+        <item>1.5,0.25</item>
+        <item>2,0.25</item>
+        <item>3,0.25</item>
+        <item>3,0.75</item>
+        <item>4,0.75</item>
+        <item>5,0.75</item>
+        <item>7,0.75</item>
+        <item>10,0.75</item>
+        <item>10,2.5</item>
+        <item>15,2.5</item>
+        <item>20,2.5</item>
+        <item>30,2.5</item>
+        <item>30,7.5</item>
+        <item>40,7.5</item>
+        <item>50,7.5</item>
+        <item>70,7.5</item>
+        <item>100,7.5</item>
+        <item>100,25</item>
+        <item>150,25</item>
+        <item>200,25</item>
+        <item>300,25</item>
+        <item>300,75</item>
+        <item>400,75</item>
+        <item>500,75</item>
+        <item>700,75</item>
+        <item>1000,75</item>
+    </string-array>
+
+    <!-- Note: Other arrays like project_type_array, time_options_array, stack_options_array
+         were defined directly within strings.xml for convenience as they contained
+         references to other string resources (like @string/project_type_sholom).
+         If they didn't need localization or string references, they could also be here.
+         Keeping sholom_geometries_array separate as it's pure data. -->
+
+</resources>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base Colors (Material Design 3 Palette - Dark Theme) -->
+    <!-- Names are consistent with the values/colors.xml file -->
+    <color name="md_theme_primary">#D0BCFF</color>
+    <color name="md_theme_onPrimary">#381E72</color>
+    <color name="md_theme_primaryContainer">#4F378B</color>
+    <color name="md_theme_onPrimaryContainer">#EADDFF</color>
+    <color name="md_theme_secondary">#CCC2DC</color>
+    <color name="md_theme_onSecondary">#332D41</color>
+    <color name="md_theme_secondaryContainer">#4A4458</color>
+    <color name="md_theme_onSecondaryContainer">#E8DEF8</color>
+    <color name="md_theme_tertiary">#EFB8C8</color>
+    <color name="md_theme_onTertiary">#492532</color>
+    <color name="md_theme_tertiaryContainer">#633B48</color>
+    <color name="md_theme_onTertiaryContainer">#FFD8E4</color>
+    <color name="md_theme_error">#F2B8B5</color>
+    <color name="md_theme_onError">#601410</color>
+    <color name="md_theme_errorContainer">#8C1D18</color>
+    <color name="md_theme_onErrorContainer">#F9DEDC</color>
+    <color name="md_theme_outline">#938F99</color>
+    <color name="md_theme_background">#1C1B1F</color>
+    <color name="md_theme_onBackground">#E6E1E5</color>
+    <color name="md_theme_surface">#1C1B1F</color>
+    <color name="md_theme_onSurface">#E6E1E5</color>
+    <color name="md_theme_surfaceVariant">#49454F</color>
+    <color name="md_theme_onSurfaceVariant">#CAC4D0</color>
+    <color name="md_theme_inverseSurface">#E6E1E5</color>
+    <color name="md_theme_inverseOnSurface">#313033</color>
+    <color name="md_theme_inversePrimary">#6750A4</color>
+    <color name="md_theme_shadow">#000000</color>
+    <color name="md_theme_surfaceTint">@color/md_theme_primary</color>
+    <color name="md_theme_outlineVariant">#49454F</color>
+    <color name="md_theme_scrim">#000000</color>
+
+    <!-- Simip Specific Colors (Night Theme) - Referencing the common theme palette -->
+    <color name="simip_toolbar_background">@color/md_theme_surface</color>
+    <color name="simip_toolbar_text">@color/md_theme_onSurface</color>
+    <color name="simip_statusbar_background">@color/md_theme_surfaceVariant</color>
+    <color name="simip_statusbar_text">@color/md_theme_onSurfaceVariant</color>
+    <color name="simip_tab_indicator">@color/md_theme_primary</color>
+    <color name="simip_tab_text_selected">@color/md_theme_primary</color>
+    <color name="simip_tab_text_unselected">@color/md_theme_onSurfaceVariant</color>
+
+    <!-- Button Colors (Night Theme) -->
+    <color name="simip_button_outlined_stroke">@color/md_theme_outline</color>
+    <color name="simip_button_outlined_text">@color/md_theme_primary</color>
+    <color name="simip_button_filled_background">@color/md_theme_primary</color>
+    <color name="simip_button_filled_text">@color/md_theme_onPrimary</color>
+
+    <!-- Text & Label Colors -->
+    <color name="simip_text_label">@color/md_theme_onSurfaceVariant</color>
+    <color name="simip_text_value">@color/md_theme_onSurface</color>
+    <color name="simip_text_error">@color/md_theme_error</color>
+
+    <!-- Graph Colors -->
+    <color name="simip_graph_roh_color">#FF5252</color>
+    <color name="simip_graph_ip_color">#448AFF</color>
+    <color name="simip_graph_ip_decay_color">@color/md_theme_secondary</color>
+    <color name="simip_graph_axis_color">@color/md_theme_onSurfaceVariant</color>
+    <color name="simip_graph_grid_color">@color/md_theme_outlineVariant</color>
+
+    <!-- DList Row Colors -->
+    <color name="simip_dlist_row_odd_background">@color/md_theme_surface</color>
+    <color name="simip_dlist_row_even_background">#2A282E</color>
+
+    <!-- Status Bar Specific Colors (Dark Theme) -->
+    <color name="simip_status_connected_text">#66BB6A</color>
+    <color name="simip_status_searching_text">@color/md_theme_onSurfaceVariant</color>
+    <color name="simip_status_error_text">@color/md_theme_error</color>
+
+    <!-- Base Android Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
+
+</resources>

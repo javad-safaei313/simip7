@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/spacing_medium"
+    android:paddingEnd="@dimen/spacing_medium"
+    android:paddingTop="@dimen/padding_item"
+    android:paddingBottom="@dimen/padding_item"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground"> <!-- Ripple effect on click -->
+
+    <!-- Optional: Icon (e.g., folder icon) -->
+    <ImageView
+        android:id="@+id/item_iv_project_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_folder_vd"
+    android:layout_marginEnd="@dimen/margin_medium"
+    app:tint="?attr/colorOnSurfaceVariant"
+    android:contentDescription="@null"
+    xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+
+    <!-- Project Name -->
+    <TextView
+        android:id="@+id/item_tv_project_name"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:maxLines="1"
+        android:ellipsize="end"
+        tools:text="My Awesome Project Name"/>
+
+</LinearLayout>

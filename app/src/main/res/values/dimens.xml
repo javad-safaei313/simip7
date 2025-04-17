@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Standard spacing -->
+    <dimen name="spacing_extra_small">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_extra_large">32dp</dimen>
+
+    <!-- Padding -->
+    <dimen name="padding_activity_horizontal">@dimen/spacing_medium</dimen>
+    <dimen name="padding_activity_vertical">@dimen/spacing_medium</dimen>
+    <dimen name="padding_fragment">@dimen/spacing_medium</dimen>
+    <dimen name="padding_dialog">@dimen/spacing_large</dimen>
+    <dimen name="padding_section">@dimen/spacing_medium</dimen>
+    <dimen name="padding_item">@dimen/spacing_small</dimen>
+    <dimen name="padding_button_vertical">12dp</dimen>
+    <dimen name="padding_button_horizontal">@dimen/spacing_medium</dimen>
+
+    <!-- Margins -->
+    <dimen name="margin_small">@dimen/spacing_small</dimen>
+    <dimen name="margin_medium">@dimen/spacing_medium</dimen>
+    <dimen name="margin_large">@dimen/spacing_large</dimen>
+    <dimen name="margin_widget_vertical">@dimen/spacing_small</dimen> <!-- Vertical margin between widgets -->
+    <dimen name="margin_widget_horizontal">@dimen/spacing_small</dimen> <!-- Horizontal margin between widgets -->
+    <dimen name="margin_section_top">@dimen/spacing_medium</dimen>
+
+    <!-- Text Sizes -->
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_body">14sp</dimen> <!-- Standard body text, labels -->
+    <dimen name="text_size_subhead">16sp</dimen> <!-- Values, button text -->
+    <dimen name="text_size_title">20sp</dimen> <!-- Toolbar title, dialog titles -->
+    <dimen name="text_size_headline">24sp</dimen>
+
+    <!-- Component Heights -->
+    <dimen name="toolbar_height">?attr/actionBarSize</dimen> <!-- Standard toolbar height -->
+    <dimen name="statusbar_height">24dp</dimen> <!-- Approximate height for status bar -->
+    <dimen name="tab_height">48dp</dimen> <!-- Standard tab height -->
+    <dimen name="button_height">48dp</dimen> <!-- Standard button height (Material Design) -->
+    <dimen name="edittext_height">48dp</dimen> <!-- Standard EditText height -->
+    <dimen name="progressbar_height">4dp</dimen> <!-- Height for linear progress bar -->
+    <dimen name="seekbar_height">48dp</dimen> <!-- Touch target height for SeekBar -->
+
+    <!-- Component Widths -->
+    <dimen name="button_save_width">120dp</dimen> <!-- Example width for Save button -->
+    <!-- Start button width will be approx 2x Save button width -->
+
+    <!-- Corner Radius -->
+    <dimen name="corner_radius_button">24dp</dimen> <!-- For Pill Shape buttons (half of height) -->
+    <dimen name="corner_radius_dialog">16dp</dimen>
+    <dimen name="corner_radius_card">12dp</dimen>
+
+    <!-- Elevation -->
+    <dimen name="elevation_toolbar">4dp</dimen>
+    <dimen name="elevation_dialog">8dp</dimen>
+    <dimen name="elevation_button_pressed">4dp</dimen>
+
+    <!-- Graph Specific -->
+    <dimen name="graph_line_thickness">2dp</dimen>
+    <dimen name="graph_point_radius">4dp</dimen>
+    <dimen name="graph_axis_text_size">@dimen/text_size_small</dimen>
+    <dimen name="graph_height_acq">150dp</dimen> <!-- Height for IP decay graph in Acq -->
+    <dimen name="graph_height_dlist">200dp</dimen> <!-- Height for Roh/IP graph in DList -->
+
+    <!-- Other -->
+    <dimen name="divider_height">1dp</dimen>
+    <dimen name="icon_size_toolbar">24dp</dimen>
+    <dimen name="icon_size_menu_item">24dp</dimen>
+
+</resources>

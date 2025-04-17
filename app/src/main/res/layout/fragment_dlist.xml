@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/padding_fragment"
+    tools:context=".ui.dlist.DListFragment">
+
+    <!-- Sounding/Profile Selector Section -->
+    <TextView
+        android:id="@+id/tvLabelSoundingSelector"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/label_sounding_profile"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/hsvDataListContainer"/>
+
+    <Spinner
+        android:id="@+id/spinnerSoundingProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="150dp"
+        android:minHeight="@dimen/edittext_height"
+
+        style="@android:style/Widget.Spinner"
+        android:layout_marginStart="@dimen/margin_medium"
+        app:layout_constraintStart_toEndOf="@id/tvLabelSoundingSelector"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/tvLabelSoundingSelector"
+        tools:listitem="@android:layout/simple_spinner_dropdown_item"/>
+    <!-- Add tools:listitem for preview -->
+
+    <!-- Optional: Progress Bar for loading data -->
+    <ProgressBar
+        android:id="@+id/progressBarDList"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/spinnerSoundingProfile"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="@dimen/spacing_small"/>
+
+    <!-- Data List Section (RecyclerView) -->
+    <!-- Wrap RecyclerView in HorizontalScrollView to allow horizontal scrolling for tables -->
+    <HorizontalScrollView
+        android:id="@+id/hsvDataListContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/margin_medium"
+        android:layout_marginBottom="@dimen/margin_medium"
+        app:layout_constraintTop_toBottomOf="@id/progressBarDList"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tvLabelDListGraph"
+        app:layout_constraintVertical_weight="1"> <!-- Give more space to the list -->
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewDataList"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_measurement" />
+        <!-- Need item_measurement.xml layout -->
+
+    </HorizontalScrollView>
+
+    <!-- Graph Section Title -->
+    <TextView
+        android:id="@+id/tvLabelDListGraph"
+        style="@style/TextAppearance.Material3.TitleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Roh / IP Profile Graph"
+        android:layout_marginBottom="@dimen/margin_medium"
+        app:layout_constraintBottom_toTopOf="@id/chartRohIp"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+
+    <!-- Graph Placeholder (Dual Y-Axis) -->
+    <!-- Use a library like MPAndroidChart or PhilJay/MPAndroidChart -->
+    <!-- Requires CombinedChart for Dual Y-Axis -->
+    <com.github.mikephil.charting.charts.CombinedChart
+        android:id="@+id/chartRohIp"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/graph_height_dlist"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

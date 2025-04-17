@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.simip"> <!-- نام پکیج برنامه شما -->
+
+    <!-- مجوزهای شبکه -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- CHANGE_WIFI_STATE برای فعال/غیرفعال کردن و اتصال Wi-Fi لازم است -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
+
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <!-- برای اندروید 9 (Pie) و بالاتر، برای اسکن وای‌فای و دسترسی به برخی اطلاعات، این مجوز لازم است -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+
+
+    <!-- مجوزهای موقعیت مکانی -->
+    <!-- ACCESS_FINE_LOCATION برای GPS دقیق و اسکن Wi-Fi در برخی نسخه‌ها لازم است -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- ACCESS_COARSE_LOCATION معمولاً همراه با FINE درخواست می‌شود یا به عنوان جایگزین -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- BACKGROUND_LOCATION در صورت نیاز به موقعیت مکانی در پس‌زمینه (اینجا لازم نیست) -->
+    <!-- <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> -->
+
+    <!-- مجوز ذخیره‌سازی (فقط برای اندروید 9 و پایین‌تر برای اکسپورت لازم است) -->
+    <!-- maxSdkVersion="28" یعنی این مجوز فقط تا API 28 درخواست می‌شود -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <!-- READ_EXTERNAL_STORAGE معمولاً همراه با WRITE لازم است -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <!-- اعلام اینکه برنامه از موقعیت مکانی استفاده می‌کند (برای نمایش در Google Play) -->
+    <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
+    <uses-feature android:name="android.hardware.wifi" android:required="true"/>
+
+
+    <application
+        android:name=".SimipApp"
+    android:allowBackup="true"
+    android:dataExtractionRules="@xml/data_extraction_rules"
+    android:fullBackupContent="@xml/backup_rules"
+    android:icon="@mipmap/ic_launcher"
+    android:label="@string/app_name"
+    android:roundIcon="@mipmap/ic_launcher_round"
+    android:supportsRtl="true"
+    android:theme="@style/Theme.Simip"
+    android:usesCleartextTraffic="true"
+    tools:targetApi="31">
+
+    <activity
+        android:name=".ui.main.MainActivity"
+    android:exported="true"
+    android:windowSoftInputMode="adjustPan"
+    android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|locale|layoutDirection"> <!-- مدیریت تغییرات پیکربندی برای جلوگیری از ری‌استارت در موارد غیرضروری -->
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+</activity>
+
+    <!-- در صورت نیاز، سایر Activity ها، Service ها، BroadcastReceiver ها، Provider ها را در اینجا تعریف کنید -->
+    <!-- مثال:
+    <service android:name=".MyBackgroundService" />
+    <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.provider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/provider_paths" />
+    </provider>
+     -->
+
+    </application>
+
+    </manifest>

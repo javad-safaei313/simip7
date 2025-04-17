@@ -1,0 +1,200 @@
+<resources>
+    <!-- App Basics -->
+    <string name="app_name" translatable="false">simip</string>
+    <string name="app_version_placeholder">Version %1$s</string> <!-- Placeholder for dynamic version -->
+    <string name="copyright_text">© 2025 Your Company Name. All rights reserved.</string> <!-- REPLACE with actual company/year -->
+
+    <!-- Toolbar & Menu -->
+    <string name="menu_new">New</string>
+    <string name="menu_open">Open</string>
+    <string name="menu_export">Export</string>
+    <string name="menu_about">About</string>
+    <string name="language_selector_en">EN</string>
+    <string name="language_selector_fa">FA</string> <!-- Displayed text on button/toggle -->
+    <string name="language_toggle_content_description">Change Language</string>
+
+    <!-- Status Bar -->
+    <string name="status_searching">Searching…</string>
+    <string name="status_connected">Connected [%1$s] Ver[%2$s]</string> <!-- %1$s = SSID, %2$s = Version -->
+    <string name="status_connection_error">Connection Error</string>
+    <string name="status_device_error">Device Error: %1$s</string> <!-- %1$s = Error details -->
+    <string name="status_wifi_connecting">Connecting Wi-Fi…</string>
+    <string name="status_wifi_connected_tcp_pending">Wi-Fi Connected, Connecting TCP…</string>
+    <string name="status_tcp_connecting">Connecting TCP…</string>
+    <string name="status_verifying_device">Verifying Device…</string>
+    <string name="status_label_v_mn">V_MN:</string>
+    <string name="status_label_battery">Battery:</string>
+    <string name="status_label_temp">Temp:</string>
+    <string name="status_unit_mv">%1$.3f mV</string> <!-- Format for V_MN -->
+    <string name="status_unit_v">%1$.1f V</string> <!-- Format for Battery -->
+    <string name="status_unit_c">%1$.1f °C</string> <!-- Format for Temp -->
+    <string name="status_value_placeholder">--</string>
+
+    <!-- Main Tabs -->
+    <string name="tab_acq">Acq</string>
+    <string name="tab_dlist">DList</string>
+    <string name="tab_analysis">Analysis</string>
+
+    <!-- New Project Dialog -->
+    <string name="dialog_title_new_project">Create New Project</string>
+    <string name="hint_project_name">Project Name</string>
+    <string name="label_project_type">Project Type:</string>
+    <string name="label_last_project">Last Project:</string>
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">Cancel</string> <!-- General Cancel Button -->
+    <string name="placeholder_no_last_project">None</string>
+
+    <!-- Open Project Dialog -->
+    <string name="dialog_title_open_project">Open Project</string>
+    <string name="label_no_projects">No projects found.</string>
+
+    <!-- About Dialog -->
+    <string name="dialog_title_about">About simip</string>
+    <string name="company_name">Your Company Name</string> <!-- REPLACE -->
+
+    <!-- Acq Tab - Settings -->
+    <string name="label_current">Current (mA):</string>
+    <string name="label_time">Time (s):</string>
+    <string name="label_stack">Stack:</string>
+    <string name="button_apply">Apply</string>
+
+    <!-- Acq Tab - Geometry -->
+    <string name="label_geometry_sholom_ab2">AB/2 (m)</string>
+    <string name="label_geometry_sholom_mn2">MN/2 (m)</string>
+    <string name="label_geometry_sholom_x0">X0 (m)</string>
+    <string name="label_geometry_other_tx0">tx0 (m)</string>
+    <string name="label_geometry_other_tx1">tx1 (m)</string>
+    <string name="label_geometry_other_rx0">rx0 (m)</string>
+    <string name="label_geometry_other_rx1">rx1 (m)</string>
+    <string name="label_geometry_other_distance">distance (m)</string>
+    <string name="hint_enter_value">Enter value</string> <!-- General hint for EditText -->
+    <string name="text_infinity_positive">inf</string> <!-- Display for +infinity -->
+    <string name="text_infinity_negative">-inf</string> <!-- Display for -infinity -->
+
+    <!-- Acq Tab - Controls -->
+    <string name="button_reset">Reset</string>
+    <string name="button_next">Next</string>
+    <string name="button_previous">Prev</string> <!-- Abbreviated for space -->
+    <string name="button_start">Start</string>
+    <string name="button_save">Save</string>
+
+    <!-- Acq Tab - Measured Values -->
+    <string name="label_measured_dv">dV (mV):</string>
+    <string name="label_measured_i">I (mA):</string>
+    <string name="label_measured_ip">IP (mV/V):</string> <!-- Calculated Average IP -->
+    <string name="label_measured_roh">Roh (Ωm):</string>
+
+    <!-- Acq Tab - IP Decay Graph -->
+    <string name="label_ip_decay_graph">IP Decay Curve</string>
+    <string name="graph_axis_time_ms">Time (ms)</string>
+    <string name="graph_axis_ip_mvv">IP (mV/V)</string>
+
+    <!-- DList Tab - Selector -->
+    <string name="label_sounding_profile">Sounding/Profile:</string>
+    <string name="spinner_option_all">All</string>
+
+    <!-- DList Tab - Data List Headers -->
+    <!-- Note: Units are part of the header text as per spec -->
+    <string name="header_number">#</string>
+    <string name="header_sholom_ab2">AB/2 (m)</string>
+    <string name="header_sholom_mn2">MN/2 (m)</string>
+    <string name="header_sholom_x0">x0 (m)</string>
+    <string name="header_other_tx0">tx0 (m)</string>
+    <string name="header_other_tx1">tx1 (m)</string>
+    <string name="header_other_rx0">rx0 (m)</string>
+    <string name="header_other_rx1">rx1 (m)</string>
+    <!-- <string name="header_other_distance">distance (m)</string> --> <!-- Distance not usually shown per record -->
+    <!-- <string name="header_other_n">N</string> --> <!-- N not usually shown per record -->
+    <string name="header_dv">dV (mV)</string>
+    <string name="header_i">I (mA)</string>
+    <string name="header_roh">Roh (Ωm)</string>
+    <string name="header_ip">IP (mV/V)</string>
+    <string name="header_contact">Contact (kΩ)</string>
+
+    <!-- DList Tab - Graph -->
+    <string name="graph_axis_roh_omm">Roh (Ωm)</string>
+    <!-- <string name="graph_axis_ip_mvv">IP (mV/V)</string> --> <!-- Already defined -->
+    <string name="graph_axis_distance_m">Distance (m)</string> <!-- Or AB/2 (m) for Sholom -->
+    <string name="graph_axis_ab2_m">AB/2 (m)</string>
+    <string name="graph_axis_n_distance_m">N * Distance (m)</string> <!-- For non-sholom -->
+
+    <!-- Analysis Tab -->
+    <string name="text_under_development">Under development</string>
+
+    <!-- General UI Messages & Errors -->
+    <string name="error_generic">An error occurred.</string>
+    <string name="error_unexpected">An unexpected error occurred: %1$s</string>
+    <string name="error_network">Network error. Please check connection.</string>
+    <string name="error_connection_failed">Connection failed.</string>
+    <string name="error_device_communication">Device communication error.</string>
+    <string name="error_timeout">Operation timed out.</string>
+    <string name="error_invalid_input">Invalid input.</string>
+    <string name="error_project_name_empty">Project name cannot be empty.</string>
+    <string name="error_project_name_invalid">Project name contains invalid characters.</string>
+    <string name="error_project_open_failed">Failed to open project.</string>
+    <string name="error_export_failed">Failed to export project data.</string>
+    <string name="error_save_failed">Failed to save measurement.</string>
+    <string name="error_settings_apply_failed">Failed to apply settings.</string>
+    <string name="error_start_measurement_failed">Failed to start measurement.</string>
+    <string name="error_location_permission">Location permission is required.</string>
+    <string name="error_location_failed">Could not get location.</string>
+    <string name="error_storage_permission">Storage permission required for export (Android 9 or lower).</string>
+    <string name="error_wifi_permission">Wi-Fi permissions required.</string>
+    <string name="error_wifi_connection_failed">Failed to connect to device Wi-Fi.</string>
+    <string name="error_invalid_geometry">Invalid geometry for Roh calculation.</string>
+
+    <string name="warning_no_data_to_save">No new data to save.</string>
+    <string name="warning_measurement_in_progress">Measurement already in progress.</string>
+    <string name="warning_no_project_open">No project is currently open.</string>
+    <string name="warning_save_no_location">Warning: Could not get location for saving.</string>
+    <string name="warning_connection_lost_measurement">Connection lost during measurement!</string>
+
+    <string name="info_settings_applied">Settings applied successfully.</string>
+    <string name="info_measurement_started">Measurement started.</string>
+    <string name="info_measurement_saved">Measurement saved successfully (ID: %1$d).</string> <!-- %1$d = Row ID -->
+    <string name="info_export_started">Starting export for project %1$s…</string> <!-- %1$s = Project Name -->
+    <string name="info_export_success">Project \'%1$s\' exported successfully to Downloads.</string>
+    <string name="info_location_acquired">Location acquired.</string>
+
+    <!-- Accessibility Content Descriptions -->
+    <string name="cd_options_menu">Options menu</string>
+    <string name="cd_language_selector">Select language</string>
+    <string name="cd_close_dialog">Close dialog</string>
+    <string name="cd_ip_decay_graph">Graph showing IP decay over time</string>
+    <string name="cd_roh_ip_graph">Graph showing Roh and IP profile</string>
+
+    <!-- String Arrays (Referenced by Spinners etc.) -->
+    <!-- Sholom geometries are in arrays.xml -->
+    <string-array name="project_type_array">
+        <item>@string/project_type_sholom</item>
+        <item>@string/project_type_dpdp</item>
+        <item>@string/project_type_pdp</item>
+        <item>@string/project_type_pp</item>
+    </string-array>
+
+    <string-array name="time_options_array">
+        <item>2</item>
+        <item>4</item>
+        <item>6</item>
+        <item>8</item>
+    </string-array>
+
+    <string-array name="stack_options_array">
+        <item>2</item>
+        <item>4</item>
+        <item>6</item>
+        <item>8</item>
+    </string-array>
+
+    <!-- Project Type Keys (Used internally, but defined here for consistency) -->
+    <string name="project_type_sholom" translatable="false">sholom</string>
+    <string name="project_type_dpdp" translatable="false">DP-DP</string>
+    <string name="project_type_pdp" translatable="false">P-DP</string>
+    <string name="project_type_pp" translatable="false">P-P</string>
+
+    <!-- Special signal strings (used via SharedFlow for events) -->
+    <string name="signal_play_sound_ding" translatable="false">PLAY_SOUND_DING</string>
+    <string name="signal_recreate_activity" translatable="false">RECREATE_ACTIVITY_FOR_LOCALE</string>
+
+
+</resources>

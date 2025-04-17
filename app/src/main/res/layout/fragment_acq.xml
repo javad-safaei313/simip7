@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context=".ui.acq.AcqFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/padding_fragment">
+
+        <!-- Settings Section -->
+        <TextView
+            android:id="@+id/tvLabelSettings"
+            style="@style/TextAppearance.Material3.TitleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Settings"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <!-- Current SeekBar -->
+        <TextView
+            android:id="@+id/tvLabelCurrentSeekBar"
+            style="@style/Widget.Simip.TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_medium"
+            android:text="@string/label_current"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvLabelSettings" />
+
+        <TextView
+            android:id="@+id/tvCurrentValue"
+            style="@style/Widget.Simip.TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_small"
+            android:textStyle="bold"
+            app:layout_constraintBaseline_toBaselineOf="@id/tvLabelCurrentSeekBar"
+            app:layout_constraintStart_toEndOf="@id/tvLabelCurrentSeekBar"
+            tools:text="500 mA" />
+
+        <SeekBar
+            android:id="@+id/seekBarCurrent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_widget_vertical"
+            android:max="800"
+            android:min="80"
+            android:progress="80"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvLabelCurrentSeekBar" />
+        <!-- Note: Need custom drawable or Material Slider for better styling -->
+
+        <!-- Time and Stack Spinners -->
+        <LinearLayout
+            android:id="@+id/layoutSpinners"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_widget_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnApply"
+            app:layout_constraintTop_toBottomOf="@id/seekBarCurrent">
+
+            <!-- Time Spinner -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="@dimen/margin_widget_horizontal">
+                <TextView
+                    android:id="@+id/tvLabelTimeSpinner"
+                    style="@style/Widget.Simip.TextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_time"/>
+                <Spinner
+                    android:id="@+id/spinnerTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/edittext_height"
+                    android:entries="@array/time_options_array"
+                style="@android:style/Widget.Spinner" />
+            </LinearLayout>
+
+            <!-- Stack Spinner -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="@dimen/margin_widget_horizontal">
+                <TextView
+                    android:id="@+id/tvLabelStackSpinner"
+                    style="@style/Widget.Simip.TextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_stack"/>
+                <Spinner
+                    android:id="@+id/spinnerStack"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/edittext_height"
+                    android:entries="@array/stack_options_array"
+                    style="@android:style/Widget.Spinner"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Apply Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnApply"
+            style="@style/Widget.Simip.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="100dp"
+            android:layout_marginStart="@dimen/margin_large"
+            android:text="@string/button_apply"
+            app:layout_constraintBottom_toBottomOf="@id/layoutSpinners"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/layoutSpinners" />
+
+
+        <!-- Divider -->
+        <View
+            android:id="@+id/divider1"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/divider_height"
+            android:layout_marginTop="@dimen/margin_section_top"
+            android:background="?attr/colorOutlineVariant"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layoutSpinners" />
+
+        <!-- Geometry Section -->
+        <TextView
+            android:id="@+id/tvLabelGeometry"
+            style="@style/TextAppearance.Material3.TitleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_section_top"
+            android:text="Geometry"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider1"/>
+
+        <!-- Geometry Container (Content changes based on project type) -->
+        <!-- Using ViewStubs or programmatically adding views might be alternatives -->
+        <!-- For simplicity, we define all possible layouts here and control visibility -->
+
+        <!-- Sholom Geometry -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layoutGeometrySholom"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_medium"
+            android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/tvLabelGeometry"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/inputLayoutSholomAB2"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_widget_horizontal"
+            android:hint="@string/label_geometry_sholom_ab2"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/inputLayoutSholomMN2">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etSholomAB2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/inputLayoutSholomMN2"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_widget_horizontal"
+            android:layout_marginEnd="@dimen/margin_widget_horizontal"
+            android:hint="@string/label_geometry_sholom_mn2"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/inputLayoutSholomAB2"
+            app:layout_constraintEnd_toStartOf="@+id/inputLayoutSholomX0">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etSholomMN2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/inputLayoutSholomX0"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_widget_horizontal"
+            android:hint="@string/label_geometry_sholom_x0"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/inputLayoutSholomMN2"
+            app:layout_constraintEnd_toEndOf="parent">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etSholomX0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal|numberSigned" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Other Geometries (DPDP, PDP, PP) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutGeometryOther"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_medium"
+        android:visibility="gone"
+    app:layout_constraintTop_toBottomOf="@id/tvLabelGeometry"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+    <!-- Row 1: tx0, tx1 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputLayoutOtherTX0"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        android:hint="@string/label_geometry_other_tx0"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/inputLayoutOtherTX1">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etOtherTX0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal|numberSigned" />
+        <!-- Use TextView for -inf display -->
+        <TextView
+            android:id="@+id/tvOtherTX0Infinity"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            style="@style/Widget.Simip.EditText"
+            android:text="@string/text_infinity_negative"
+            android:visibility="gone"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/spacing_medium"
+            android:paddingEnd="@dimen/spacing_medium"
+            android:background="@drawable/bg_edittext_outline_disabled" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputLayoutOtherTX1"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_widget_horizontal"
+        android:hint="@string/label_geometry_other_tx1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/inputLayoutOtherTX0"
+        app:layout_constraintEnd_toEndOf="parent">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etOtherTX1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal|numberSigned" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <!-- Row 2: rx0, rx1 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputLayoutOtherRX0"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_widget_vertical"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        android:hint="@string/label_geometry_other_rx0"
+        app:layout_constraintTop_toBottomOf="@id/inputLayoutOtherTX0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/inputLayoutOtherRX1">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etOtherRX0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal|numberSigned" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputLayoutOtherRX1"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_widget_horizontal"
+        android:hint="@string/label_geometry_other_rx1"
+        app:layout_constraintTop_toTopOf="@id/inputLayoutOtherRX0"
+        app:layout_constraintStart_toEndOf="@id/inputLayoutOtherRX0"
+        app:layout_constraintEnd_toEndOf="parent">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etOtherRX1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal|numberSigned" />
+        <!-- Use TextView for +inf display -->
+        <TextView
+            android:id="@+id/tvOtherRX1Infinity"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            style="@style/Widget.Simip.EditText"
+            android:text="@string/text_infinity_positive"
+            android:visibility="gone"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/spacing_medium"
+            android:paddingEnd="@dimen/spacing_medium"
+            android:background="@drawable/bg_edittext_outline_disabled" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <!-- Row 3: distance -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputLayoutOtherDistance"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_widget_vertical"
+        android:layout_marginEnd="@dimen/margin_widget_horizontal"
+        android:hint="@string/label_geometry_other_distance"
+        app:layout_constraintTop_toBottomOf="@id/inputLayoutOtherRX0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"> <!-- Full width for distance -->
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etOtherDistance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Divider -->
+<View
+android:id="@+id/divider2"
+android:layout_width="0dp"
+android:layout_height="@dimen/divider_height"
+android:layout_marginTop="@dimen/margin_section_top"
+android:background="?attr/colorOutlineVariant"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toBottomOf="@id/layoutGeometrySholom"
+app:layout_constraintBottom_toTopOf="@id/layoutControls"/> <!-- Adjust constraint based on visible geometry -->
+
+    <!-- Control Buttons Section -->
+<androidx.constraintlayout.widget.ConstraintLayout
+android:id="@+id/layoutControls"
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_marginTop="@dimen/margin_section_top"
+app:layout_constraintTop_toBottomOf="@id/divider2"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toEndOf="parent">
+
+<!-- Row 1: Reset, Next, Previous -->
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/btnReset"
+    style="@style/Widget.Simip.Button.OutlinedButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/button_reset"
+    app:layout_constraintEnd_toStartOf="@id/btnNext"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintHorizontal_chainStyle="spread_inside"/>
+
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/btnNext"
+    style="@style/Widget.Simip.Button.OutlinedButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/button_next"
+    app:layout_constraintEnd_toStartOf="@id/btnPrevious"
+    app:layout_constraintStart_toEndOf="@id/btnReset"
+    app:layout_constraintTop_toTopOf="parent"/>
+
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/btnPrevious"
+    style="@style/Widget.Simip.Button.OutlinedButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/button_previous"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toEndOf="@id/btnNext"
+    app:layout_constraintTop_toTopOf="parent"/>
+
+<!-- Row 2: Start, Save -->
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/btnStart"
+    style="@style/Widget.Simip.Button"
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_marginTop="@dimen/margin_widget_vertical"
+android:layout_marginEnd="@dimen/margin_widget_horizontal"
+android:text="@string/button_start"
+app:layout_constraintHorizontal_weight="2"
+app:layout_constraintTop_toBottomOf="@id/btnReset"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toStartOf="@id/btnSave"/>
+
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/btnSave"
+    style="@style/Widget.Simip.Button.OutlinedButton"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/margin_widget_vertical"
+    android:layout_marginStart="@dimen/margin_widget_horizontal"
+    android:text="@string/button_save"
+    app:layout_constraintHorizontal_weight="1"
+    app:layout_constraintTop_toBottomOf="@id/btnReset"
+    app:layout_constraintStart_toEndOf="@id/btnStart"
+    app:layout_constraintEnd_toEndOf="parent"/>
+
+<!-- Row 3: Progress Bar -->
+<com.google.android.material.progressindicator.LinearProgressIndicator
+    android:id="@+id/progressBar"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/margin_widget_vertical"
+    android:indeterminate="false"
+    android:visibility="gone"
+    tools:visibility="visible"
+    tools:progress="60"
+    app:layout_constraintTop_toBottomOf="@id/btnStart"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <!-- Divider -->
+<View
+android:id="@+id/divider3"
+android:layout_width="0dp"
+android:layout_height="@dimen/divider_height"
+android:layout_marginTop="@dimen/margin_section_top"
+android:background="?attr/colorOutlineVariant"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toBottomOf="@id/layoutControls"/>
+
+    <!-- Measured Values Section -->
+<TextView
+android:id="@+id/tvLabelMeasuredValues"
+style="@style/TextAppearance.Material3.TitleSmall"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_marginTop="@dimen/margin_section_top"
+android:text="Measured Values"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toBottomOf="@id/divider3"/>
+
+    <!-- Measured Values Layout -->
+<LinearLayout
+android:id="@+id/layoutMeasuredValues"
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_marginTop="@dimen/margin_medium"
+android:orientation="vertical"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintTop_toBottomOf="@id/tvLabelMeasuredValues">
+
+<!-- dV -->
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_widget_vertical">
+    <TextView style="@style/Widget.Simip.TextView" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_measured_dv" android:textColor="?attr/colorOnSurfaceVariant"/>
+    <TextView android:id="@+id/tvMeasuredDV" style="@style/Widget.Simip.TextView" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/spacing_small" android:textStyle="bold" tools:text="1234.567"/>
+</LinearLayout>
+<!-- I -->
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_widget_vertical">
+    <TextView style="@style/Widget.Simip.TextView" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_measured_i" android:textColor="?attr/colorOnSurfaceVariant"/>
+    <TextView android:id="@+id/tvMeasuredI" style="@style/Widget.Simip.TextView" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/spacing_small" android:textStyle="bold" tools:text="500.1"/>
+</LinearLayout>
+<!-- IP -->
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_widget_vertical">
+    <TextView style="@style/Widget.Simip.TextView" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_measured_ip" android:textColor="?attr/colorOnSurfaceVariant"/>
+    <TextView android:id="@+id/tvMeasuredIP" style="@style/Widget.Simip.TextView" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/spacing_small" android:textStyle="bold" tools:text="15.8"/>
+</LinearLayout>
+<!-- Roh -->
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+    <TextView style="@style/Widget.Simip.TextView" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/label_measured_roh" android:textColor="?attr/colorOnSurfaceVariant"/>
+    <TextView android:id="@+id/tvMeasuredRoh" style="@style/Widget.Simip.TextView" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/spacing_small" android:textStyle="bold" tools:text="250.3"/>
+</LinearLayout>
+
+</LinearLayout>
+
+    <!-- IP Decay Graph Section -->
+<TextView
+android:id="@+id/tvLabelIpDecayGraph"
+style="@style/TextAppearance.Material3.TitleSmall"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_marginTop="@dimen/margin_section_top"
+android:text="@string/label_ip_decay_graph"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toBottomOf="@id/layoutMeasuredValues"/>
+
+
+<com.github.mikephil.charting.charts.LineChart
+android:id="@+id/chartIpDecay"
+android:layout_width="0dp"
+android:layout_height="@dimen/graph_height_acq"
+android:layout_marginTop="@dimen/margin_medium"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toBottomOf="@id/tvLabelIpDecayGraph"
+app:layout_constraintBottom_toBottomOf="parent"
+android:layout_marginBottom="@dimen/spacing_medium"/>
+    <!-- Add constraints if needed for elements below the graph -->
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>

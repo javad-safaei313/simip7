@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/padding_dialog"
+    android:paddingStart="@dimen/padding_dialog"
+    android:paddingEnd="@dimen/padding_dialog"
+    android:paddingBottom="@dimen/spacing_medium"> <!-- Less padding at bottom for button -->
+
+    <!-- RecyclerView for Project List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewOpenProject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="150dp"
+        android:maxHeight="300dp"
+    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+    tools:listitem="@layout/item_project" />
+    <!-- Need item_project.xml layout -->
+
+    <!-- Placeholder for empty list -->
+    <TextView
+        android:id="@+id/tvOpenProjectEmpty"
+        style="@style/Widget.Simip.TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="150dp"
+        android:gravity="center"
+        android:text="@string/label_no_projects"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:textColor="?attr/colorOnSurfaceVariant"/>
+
+    <!-- Dialog Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/spacing_medium"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancelOpenProject"
+            style="@style/Widget.Simip.DialogButton.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_cancel"/>
+
+        <!-- No OK button, selection happens by clicking list item -->
+
+    </LinearLayout>
+
+</LinearLayout>

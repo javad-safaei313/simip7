@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base Colors (Material Design 3 Palette - Example using Purple) -->
+    <!-- Names are now consistent (no _light_) -->
+    <color name="md_theme_primary">#6750A4</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#EADDFF</color>
+    <color name="md_theme_onPrimaryContainer">#21005D</color>
+    <color name="md_theme_secondary">#625B71</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#E8DEF8</color>
+    <color name="md_theme_onSecondaryContainer">#1D192B</color>
+    <color name="md_theme_tertiary">#7D5260</color>
+    <color name="md_theme_onTertiary">#FFFFFF</color>
+    <color name="md_theme_tertiaryContainer">#FFD8E4</color>
+    <color name="md_theme_onTertiaryContainer">#31111D</color>
+    <color name="md_theme_error">#B3261E</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_errorContainer">#F9DEDC</color>
+    <color name="md_theme_onErrorContainer">#410E0B</color>
+    <color name="md_theme_outline">#79747E</color>
+    <color name="md_theme_background">#FFFBFE</color>
+    <color name="md_theme_onBackground">#1C1B1F</color>
+    <color name="md_theme_surface">#FFFBFE</color> <!-- Use for backgrounds of cards, sheets, menus -->
+    <color name="md_theme_onSurface">#1C1B1F</color> <!-- Text/icons on surface -->
+    <color name="md_theme_surfaceVariant">#E7E0EC</color> <!-- Subtle backgrounds, outlines -->
+    <color name="md_theme_onSurfaceVariant">#49454F</color> <!-- Lower emphasis text/icons -->
+    <color name="md_theme_inverseSurface">#313033</color>
+    <color name="md_theme_inverseOnSurface">#F4EFF4</color>
+    <color name="md_theme_inversePrimary">#D0BCFF</color>
+    <color name="md_theme_shadow">#000000</color>
+    <color name="md_theme_surfaceTint">@color/md_theme_primary</color> <!-- Use Primary color as surface tint -->
+    <color name="md_theme_outlineVariant">#CAC4D0</color>
+    <color name="md_theme_scrim">#000000</color> <!-- Overlay color -->
+
+
+    <!-- Simip Specific Colors (Day Theme) - These names were already consistent -->
+    <color name="simip_toolbar_background">@color/md_theme_surface</color>
+    <color name="simip_toolbar_text">@color/md_theme_onSurface</color>
+    <color name="simip_statusbar_background">@color/md_theme_surfaceVariant</color> <!-- Slightly different for status bar -->
+    <color name="simip_statusbar_text">@color/md_theme_onSurfaceVariant</color>
+    <color name="simip_tab_indicator">@color/md_theme_primary</color>
+    <color name="simip_tab_text_selected">@color/md_theme_primary</color>
+    <color name="simip_tab_text_unselected">@color/md_theme_onSurfaceVariant</color>
+
+    <!-- Button Colors (Day Theme) -->
+    <color name="simip_button_outlined_stroke">@color/md_theme_outline</color>
+    <color name="simip_button_outlined_text">@color/md_theme_primary</color>
+    <color name="simip_button_filled_background">@color/md_theme_primary</color>
+    <color name="simip_button_filled_text">@color/md_theme_onPrimary</color>
+
+    <!-- Text & Label Colors -->
+    <color name="simip_text_label">@color/md_theme_onSurfaceVariant</color> <!-- For labels next to values -->
+    <color name="simip_text_value">@color/md_theme_onSurface</color> <!-- For main values -->
+    <color name="simip_text_error">@color/md_theme_error</color>
+
+    <!-- Graph Colors -->
+    <color name="simip_graph_roh_color">#FF0000</color> <!-- Red for Roh -->
+    <color name="simip_graph_ip_color">#0000FF</color> <!-- Blue for IP -->
+    <color name="simip_graph_ip_decay_color">@color/md_theme_secondary</color> <!-- Color for IP decay curve -->
+    <color name="simip_graph_axis_color">@color/md_theme_onSurfaceVariant</color>
+    <color name="simip_graph_grid_color">@color/md_theme_outlineVariant</color>
+
+    <!-- DList Row Colors -->
+    <color name="simip_dlist_row_odd_background">@color/md_theme_surface</color>
+    <color name="simip_dlist_row_even_background">#F7F2FA</color> <!-- Slightly different background -->
+
+    <!-- Status Bar Specific Colors (Can override based on state) -->
+    <color name="simip_status_connected_text">#008000</color> <!-- Green for Connected -->
+    <color name="simip_status_searching_text">@color/md_theme_onSurfaceVariant</color> <!-- Default/Grey -->
+    <color name="simip_status_error_text">@color/md_theme_error</color> <!-- Red for Error -->
+
+
+    <!-- Base Android Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
+
+</resources>
