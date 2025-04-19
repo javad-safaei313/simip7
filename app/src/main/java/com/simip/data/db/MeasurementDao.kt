@@ -24,12 +24,9 @@ interface MeasurementDao {
      * @param projectType The type of the project.
      * @return A list of Measurement objects for the project.
      */
-  //  @Query("SELECT * FROM Measurements WHERE projectName = :projectName AND projectType = :projectType ORDER BY dbId ASC")
-//suspend fun getAllMeasurementsForProject(projectName: String, projectType: String): List<Measurement>
+    @Query("SELECT * FROM Measurements WHERE projectName = :projectName AND projectType = :projectType ORDER BY dbId ASC")
+suspend fun getAllMeasurementsForProject(projectName: String, projectType: String): List<Measurement>
 
-    @Query("SELECT * FROM measurements WHERE projectName = :projectName ORDER BY dbId ASC")
-    // موقتاً نوع بازگشتی به List تغییر کرد و suspend اضافه شد
-    suspend fun getAllMeasurementsForProject(projectName: String): List<Measurement>
 
 
     /**
