@@ -1,131 +1,158 @@
-package com.simip.data.repository
+package com.simip.simip7.repository
 
-import com.simip.data.model.DeviceStatus
-import com.simip.data.model.GeoConfig
-import com.simip.data.model.MeasurementPacket
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.io.IOException
+
+// --- Data Classes for States and Responses ---
 
 /**
- * Interface for interacting with the geophysical measurement device.
- * Handles connection management (Wi-Fi, TCP), command sending, and response parsing.
- * Provides Flows for observing connection status, device status, measurement progress,
- * and measurement results.
+ * Represents the possible states of the connection to the geophysical device.
  */
+sealed class ConnectionState {
+    /** Connection has not been initiated or has been explicitly disconnected. */
+    object Disconnected : ConnectionState()
+
+    /** Connection attempt is in progress. */
+    object Connecting : ConnectionState()
+
+    /** Connection is established. Optionally holds device information like version. */
+    data class Connected(val deviceInfo: String? = null) : ConnectionState()
+
+    /** A connection attempt or an established connection failed. */
+    data class Failed(val error: Throwable) : ConnectionState() // Use Throwable for more info
+}
+
+/**
+ * Represents the status data received from the 'Gets' command.
+ * Fields match the order specified in the PDF (section 2 and 8).
+ * All fields are nullable initially until parsing confirms their presence and validity.
+ * Using Double for flexibility with potential floating point values, adjust if needed.
+ */
+data class DeviceStatus(
+    val state: String?, // e.g., "Idle", "Busy", "Error" - Define constants or Enum if possible
+    val fe: String?, // Meaning of 'Fe'? Needs clarification from domain expert. Assuming String.
+    val setAmper: Double?, // Current setting (mA)
+    val stack: Int?, // Stack setting
+    val time: Int?, // Time setting (s)
+    val no: Int?, // Sequence number? Needs clarification.
+    val voltageBat: Double?, // Battery voltage (V)
+    val temperature: Double?, // Temperature (°C)
+    val measureMNvolt: Double? // Last measured voltage (mV)? Needs clarification.
+)
+
+/**
+ * Represents a single measurement data record received from the 'Data' command.
+ * Fields match the order specified in the PDF (section 6.3.4 and table in 7).
+ */
+data class MeasurementData(
+    val id: Int, // Measurement sequence number (Id)
+    val setAmper: Double, // Current used (mA) - From settings or measured? Assuming from settings
+    val stack: Int, // Stack used
+    val time: Int, // Time used (s)
+    // val notUsed: String?, // Placeholder if 'not' field exists in Data command
+    val voltageBat: Double, // Battery voltage (V) at time of measurement
+    val temperature: Double, // Temperature (°C) at time of measurement
+    val contactResistance: Double, // Contact resistance (kΩ)
+    val measuredAmper: Double, // Actual measured current (mA)
+    val measuredSP: Double, // Self-Potential (mV)
+    val measuredPotential: Double, // Primary Potential (deltaV) (mV) - Ensure unit is correct (mV or V)
+    val ipDecay: List<Double?> // List of 20 IP decay values (mV/V or raw mV?) - Needs clarification on unit
+    // Nullable Doubles in the list allow for potential parsing errors or missing values for specific windows
+)
+
+/**
+ * Represents the configuration to be sent with 'SetConfig'.
+ */
+data class SimipConfig(
+    val current: Int, // mA (e.g., 80-800)
+    val stack: Int,   // e.g., 2, 4, 6, 8
+    val time: Int     // s (e.g., 2, 4, 6, 8)
+)
+
+/**
+ * Represents a successful response from SetConfig or Star command (can be simple Unit).
+ * Could be expanded if these responses contain useful data.
+ */
+typealias ConfigResponse = Unit // Alias for successful SetConfig confirmation (ResConf)
+typealias StartResponse = Unit  // Alias for successful Star confirmation (ResStar)
+
+
+// --- Repository Interface Definition ---
+
 interface DeviceRepository {
-    val deviceVersion: StateFlow<String?> // <--- این خط را اضافه کنید
 
     /**
-     * A Flow providing the SSID of the currently connected Wi-Fi network (if connected via Wi-Fi helper).
-     * Emits null if not connected or SSID is unknown.
-     */
-    val connectedSsid: StateFlow<String?>
-
-    /**
-     * A Flow representing the current connection state to the device.
-     * Emits ConnectionState enum values.
-     */
-    val connectionState: StateFlow<ConnectionState> // Use StateFlow for current state
-
-    /**
-     * A Flow providing the latest real-time status from the device (from 'Gets' command).
-     * Emits DeviceStatus objects. Useful for the status bar.
-     * Should emit DeviceStatus.DISCONNECTED or DeviceStatus.ERROR when appropriate.
-     */
-    val deviceStatus: StateFlow<DeviceStatus> // Use StateFlow for current state
-
-    /**
-     * A Flow providing updates during the measurement process.
-     * Emits MeasurementProgress objects containing stage, repeat, and calculated percentage.
-     * Emits only when a measurement is active (triggered by 'startMeasurement').
-     */
-    val measurementProgress: SharedFlow<MeasurementProgress> // Use SharedFlow for events
-
-    /**
-     * A Flow providing the complete measurement data packet when a measurement finishes.
-     * Emits MeasurementPacket objects. Emits only when a full "Data,..." response is received.
-     */
-    val measurementResult: SharedFlow<MeasurementPacket> // Use SharedFlow for events
-
-    /**
-     * Initiates the process of connecting to the device.
-     * Handles Wi-Fi scanning/connection and TCP socket establishment.
-     * Updates the connectionState Flow accordingly.
-     * This function might start a long-running process managed within the repository.
-     */
-    suspend fun connectToDevice()
-
-    /**
-     * Disconnects from the device, closing the TCP socket and potentially stopping Wi-Fi search.
-     * Updates the connectionState Flow.
-     */
-    suspend fun disconnectFromDevice()
-
-    /**
-     * Sends configuration parameters (Current, Time, Stack) to the device.
-     * Uses the 'SetConfig' command.
-     * @param currentMa Current in milliamperes (e.g., 500).
-     * @param timeSec Measurement time in seconds (e.g., 2.0f).
-     * @param stack Number of stacks/repeats (e.g., 4).
-     * @return True if the configuration was acknowledged successfully (ResConf received), false otherwise.
-     */
-    suspend fun sendConfiguration(currentMa: Int, timeSec: Float, stack: Int): Boolean
-
-    /**
-     * Sends the command to start the measurement process.
-     * Uses the 'Star' command.
-     * Starts the internal process to listen for 'BussyM' and 'Data' responses,
-     * updating measurementProgress and measurementResult Flows.
-     * @return True if the start command was acknowledged successfully (ResStar received), false otherwise.
-     */
-    suspend fun startMeasurement(): Boolean
-
-    /**
-     * Called when new geometry data is available or should be acknowledged by the repository,
-     * although this might be handled directly by the AcqViewModel based on user input.
-     * Include if the repository needs awareness of the current geometry for any internal logic.
-     * (Optional - can be removed if ViewModel manages geometry state entirely)
+     * Attempts to establish a connection with the device at the specified host and port.
+     * Sends an initial 'Vers' command upon successful socket connection to verify communication.
+     * Updates [connectionState] flow accordingly.
      *
-     * @param geoConfig The current geometry configuration.
+     * @param host The IP address or hostname of the device.
+     * @param port The TCP port number for the connection.
+     * @return Result<Unit> indicating success or failure (with exception).
      */
-    // suspend fun updateCurrentGeometry(geoConfig: GeoConfig) // Keep commented unless needed
-
-
-    // --- Helper structures ---
+    suspend fun connect(host: String, port: Int): Result<Unit>
 
     /**
-     * Represents the different states of connection to the device.
+     * Closes the connection to the device and releases associated resources.
+     * Updates [connectionState] to [ConnectionState.Disconnected].
      */
-    enum class ConnectionState {
-        DISCONNECTED,
-        SEARCHING_WIFI, // Searching for specific Wi-Fi SSID
-        CONNECTING_WIFI, // Found SSID, attempting to connect
-        WIFI_CONNECTED, // Connected to Wi-Fi, trying TCP
-        CONNECTING_TCP, // Attempting TCP socket connection
-        VERIFYING_DEVICE, // TCP connected, sending 'Vers'
-        CONNECTED,        // Verified device ('Ver' received), polling 'Gets'
-        CONNECTION_ERROR, // Any error during the process (Wi-Fi, TCP, Verification)
-        DEVICE_ERROR      // Communication lost after successful connection (e.g., Gets timeout)
-    }
+    suspend fun disconnect()
 
     /**
-     * Represents the progress of an ongoing measurement.
-     * @param stage The current stage code (0 for S, 1 for C, 2 for V from BussyM).
-     * @param repeat The current repeat number (xx from BussyM).
-     * @param totalStack The total number of stacks configured for this measurement.
-     * @param progressPercent Calculated progress percentage (0-100).
+     * Provides a StateFlow representing the current connection state.
+     * Observers can react to connection changes (Connecting, Connected, Failed, Disconnected).
      */
-    data class MeasurementProgress(
-        val stage: Int,
-        val repeat: Int,
-        val totalStack: Int, // Needed to calculate percentage accurately
-        val progressPercent: Int // Calculated as (stage + 3 * repeat) * 100 / (3 * totalStack) ? Verify formula
-        // Formula check: If repeat is 0-indexed (0 to Stack-1), then:
-        // progress = (stage + 3 * repeat) * 100 / (3 * totalStack) -- seems correct for 0-indexed repeat
-        // If repeat is 1-indexed (1 to Stack):
-        // progress = (stage + 3 * (repeat-1)) * 100 / (3 * totalStack)
-        // Let's assume repeat 'xx' from BussyM is 0-indexed based on typical progress loops.
-    )
+    val connectionState: StateFlow<ConnectionState>
 
+    /**
+     * Sends the 'Gets' command to the device to request its current status.
+     * Attempts to parse the response into a [DeviceStatus] object.
+     * Updates the [latestDeviceStatus] flow with the result.
+     *
+     * @return Result<DeviceStatus> containing the parsed status on success, or failure details.
+     */
+    suspend fun requestDeviceStatus(): Result<DeviceStatus>
+
+    /**
+     * Provides a StateFlow holding the latest successfully parsed [DeviceStatus].
+     * Useful for displaying real-time device status in the UI.
+     * Holds the last successful result or an initial/error state.
+     */
+    val latestDeviceStatus: StateFlow<Result<DeviceStatus>> // Holds last known good status or error
+
+    /**
+     * Applies the given configuration and starts the measurement process on the device.
+     * Sends 'SetConfig,current,stack,time\n\r' command.
+     * Waits for 'ResConf' response and validates it.
+     * If successful, sends 'Star\n\r' command.
+     * Waits for 'ResStar' response and validates it.
+     *
+     * @param config The [SimipConfig] object containing measurement parameters.
+     * @return Result<Unit> indicating success (both commands acknowledged) or failure.
+     */
+    suspend fun applyConfigAndStartMeasurement(config: SimipConfig): Result<Unit>
+
+    /**
+     * Sends the 'Data\n\r' command to request the next available measurement record.
+     * Attempts to parse the response string "Data,Id,..." into a [MeasurementData] object.
+     * Emits the parsed result (or failure) to the [measurementDataFlow].
+     * Note: This function primarily triggers the data emission on the flow.
+     *       The ViewModel should primarily collect the flow rather than relying solely on the return value.
+     *
+     * @return Result<MeasurementData> containing the parsed data for the *single* requested record, or failure details.
+     */
+    suspend fun requestSingleMeasurement(): Result<MeasurementData>
+
+    /**
+     * Provides a SharedFlow that emits [MeasurementData] results as they are received and parsed
+     * in response to polling or requests (e.g., triggered by [requestSingleMeasurement] or an internal loop).
+     * Use SharedFlow because measurement data points are events and we don't want to lose any.
+     * Emits Result<MeasurementData> to include parsing errors.
+     */
+    val measurementDataFlow: SharedFlow<Result<MeasurementData>>
+
+    // Note: stopMeasurement() is removed as the protocol doesn't specify an explicit stop command.
+    // Stopping is likely handled by the ViewModel stopping the polling of requestSingleMeasurement
+    // or by the device automatically stopping after the configured stack/time, or on disconnect.
 }

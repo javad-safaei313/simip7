@@ -108,7 +108,8 @@ enum class ProjectType(val key: String) {
     SHOLOM("sholom"),
     DP_DP("DP-DP"),
     P_DP("P-DP"),
-    P_P("P-P");
+    P_P("P-P"),
+    UNKNOWN("Unknown Type");
 
     companion object {
         fun fromKey(key: String): ProjectType? = values().find { it.key == key }

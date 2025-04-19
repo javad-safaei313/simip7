@@ -1,6 +1,8 @@
 package com.simip.ui.main
 
-
+import com.simip.data.repository.MeasurementRepository
+import com.simip.data.repository.MeasurementRepositoryImpl
+import com.simip.util.ExcelExporter // ایمپورت اکسپور
 
 import android.view.MenuInflater
 import com.simip.data.model.ProjectType
@@ -59,7 +61,13 @@ class MainActivity : AppCompatActivity(), MenuProvider,
     private val database by lazy { AppDatabase.getDatabase(applicationContext) }
     private val measurementDao by lazy { database.measurementDao() }
     private val measurementRepository: MeasurementRepository by lazy {
-        MeasurementRepositoryImpl(measurementDao, applicationContext)
+        val dao = AppDatabase.getDatabase(applicationContext).measurementDao()
+        // گرفتن SharedPreferences با یک اسم مشخص و Context.MODE_PRIVATE
+        val prefs = applicationContext.getSharedPreferences("simip_app_prefs", Context.MODE_PRIVATE)
+        // ساختن ExcelExporter (فرض بر اینکه constructor اون Context می‌خواد)
+        val exporter = ExcelExporter(applicationContext)
+        // ساختن Impl با پارامترهای صحیح
+        MeasurementRepositoryImpl(dao, prefs, exporter)
     }
     // Pass applicationScope if DeviceRepositoryImpl needs it
     private val deviceRepository: DeviceRepository by lazy {

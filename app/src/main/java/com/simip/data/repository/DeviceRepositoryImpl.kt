@@ -1,670 +1,434 @@
-package com.simip.data.repository
+package com.simip.simip7.repository
 
-import kotlinx.coroutines.flow.MutableStateFlow // <-- اطمینان از وجود این import
-import kotlinx.coroutines.flow.StateFlow      // <-- اطمینان از وجود این import
-import kotlinx.coroutines.flow.asStateFlow
-import android.content.Context
-import android.net.wifi.WifiManager
 import android.util.Log
-import com.simip.data.model.DeviceStatus
-import com.simip.data.model.MeasurementPacket
-import com.simip.data.network.TcpClient
-import com.simip.util.Constants
-import com.simip.util.DataParser
-import com.simip.util.WifiHelper // Assume this helper exists for Wi-Fi operations
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive // Import specifically if needed, often implicit
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import java.io.BufferedReader
 import java.io.IOException
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.io.PrintWriter
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketTimeoutException
+import java.nio.charset.StandardCharsets
 
-/**
- * Implementation of DeviceRepository.
- * Manages Wi-Fi connection, TCP communication, parsing, and state flows.
- */
-class DeviceRepositoryImpl(
-    private val context: Context,
-    private val externalScope: CoroutineScope // Scope from ViewModel or Application for long-running tasks
-) : DeviceRepository {
+// Custom Exception for parsing errors
+class ParsingException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-    private val TAG = "DeviceRepoImpl"
+class DeviceRepositoryImpl : DeviceRepository {
 
-    // --- Dependencies ---
-    private val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-    private val wifiHelper = WifiHelper(context, wifiManager, Constants.WIFI_SSID_PATTERN)
-    private val tcpClient = TcpClient()
-    private val dataParser = DataParser // Object
+    private var socket: Socket? = null
+    private var writer: PrintWriter? = null
+    private var reader: BufferedReader? = null
 
-    // --- State Flows ---
-    private val _connectionState = MutableStateFlow(DeviceRepository.ConnectionState.DISCONNECTED)
-    override val connectionState: StateFlow<DeviceRepository.ConnectionState> = _connectionState.asStateFlow()
-    // اضافه کردن MutableStateFlow های لازم
-    private val _deviceVersion = MutableStateFlow<String?>(null)
-    private val _connectedSsid = MutableStateFlow<String?>(null)
+    // --- StateFlow for Connection Status ---
+    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
+    override val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
 
-    // پیاده‌سازی پراپرتی‌های انتزاعی رابط با override
-    override val deviceVersion: StateFlow<String?> = _deviceVersion.asStateFlow() // <--- پیاده‌سازی deviceVersion
-    override val connectedSsid: StateFlow<String?> = _connectedSsid.asStateFlow() // <--- پیاده‌سازی connectedSsid
-    private val _deviceStatus = MutableStateFlow(DeviceStatus.DISCONNECTED)
-    override val deviceStatus: StateFlow<DeviceStatus> = _deviceStatus.asStateFlow()
+    // --- StateFlow for Latest Device Status ---
+    // Initialize with failure to indicate no status received yet
+    private val _latestDeviceStatus = MutableStateFlow<Result<DeviceStatus>>(
+        Result.failure(IOException("No status requested yet"))
+    )
+    override val latestDeviceStatus: StateFlow<Result<DeviceStatus>> = _latestDeviceStatus.asStateFlow()
 
-    // Use MutableSharedFlow for events that shouldn't be replayed to new collectors or lost if no collector
-    private val _measurementProgress = MutableSharedFlow<DeviceRepository.MeasurementProgress>(replay = 0) // No replay
-    override val measurementProgress: SharedFlow<DeviceRepository.MeasurementProgress> = _measurementProgress.asSharedFlow()
+    // --- SharedFlow for Measurement Data Events ---
+    private val _measurementDataFlow = MutableSharedFlow<Result<MeasurementData>>(
+        replay = 0,
+        extraBufferCapacity = 64,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    override val measurementDataFlow: SharedFlow<Result<MeasurementData>> = _measurementDataFlow.asSharedFlow()
 
-    private val _measurementResult = MutableSharedFlow<MeasurementPacket>(replay = 0) // No replay
-    override val measurementResult: SharedFlow<MeasurementPacket> = _measurementResult.asSharedFlow()
+    private val TAG = "DeviceRepoImpl" // Shortened Tag for brevity in logs
+    private val CONNECT_TIMEOUT_MS = 5000 // Use const val for compile-time constants
+    private val VERS_COMMAND = "Vers\n\r"     // Ensure line endings match device spec
+    private val GETS_COMMAND = "Gets\n\r"
+    private val STAR_COMMAND = "Star\n\r"
+    private val DATA_COMMAND = "Data\n\r"
 
-    // --- Internal State ---
-    private var deviceCommunicationJob: Job? = null // Job for handling TCP reading and polling
-    private var connectJob: Job? = null // Job for the main connection sequence
-    @Volatile private var isPollingGets = false
-    @Volatile private var isAwaitingSpecificResponse = false // Flag to pause Gets polling
-    @Volatile private var isMeasurementActive = false
-    @Volatile private var currentConfiguredStack = Constants.DEFAULT_STACK // Store stack for progress calculation
+    // ====================================================================================
+    // Public Interface Implementation
+    // ====================================================================================
 
-    // --- Public Functions ---
-
-    override suspend fun connectToDevice() {
-        // Prevent multiple concurrent connection attempts
-        if (connectJob?.isActive == true || _connectionState.value != DeviceRepository.ConnectionState.DISCONNECTED) {
-            Log.w(TAG, "Connection process already active or not in disconnected state.")
-            return
+    override suspend fun connect(host: String, port: Int): Result<Unit> = withContext(Dispatchers.IO) {
+        if (_connectionState.value is ConnectionState.Connected) {
+            Log.i(TAG, "Already connected.")
+            return@withContext Result.success(Unit)
+        }
+        if (_connectionState.value is ConnectionState.Connecting) {
+            Log.w(TAG, "Connection attempt already in progress.")
+            return@withContext Result.failure(IOException("Connection attempt in progress"))
         }
 
-        connectJob = externalScope.launch(CoroutineExceptionHandler { _, throwable ->
-            Log.e(TAG, "Unhandled exception in connection coroutine: ${throwable.message}", throwable)
-            setConnectionState(DeviceRepository.ConnectionState.CONNECTION_ERROR)
-            externalScope.launch { // یا می‌توانید از CoroutineScope(Dispatchers.IO) استفاده کنید اگر عملیات IO دارد
-                cleanupJobsAndState()
-            }
+        _connectionState.value = ConnectionState.Connecting
+        Log.d(TAG, "Attempting connection to $host:$port")
 
-        }) {
-            Log.i(TAG, "Starting connection process...")
-            var wifiConnected = false
-            var tcpConnected = false
-            var versionVerified = false
-
-            try {
-                // 1. Wi-Fi Handling
-                setConnectionState(DeviceRepository.ConnectionState.SEARCHING_WIFI)
-                ensureActive() // Check if coroutine was cancelled
-                val wifiTargetNetwork = wifiHelper.findAndConnectToTargetWifi(Constants.MAX_CONNECTION_RETRIES, Constants.RETRY_DELAY_MS.milliseconds)
-
-                if (wifiTargetNetwork != null) {
-                    Log.i(TAG, "Successfully connected to Wi-Fi: ${wifiTargetNetwork.SSID}")
-                    setConnectionState(DeviceRepository.ConnectionState.WIFI_CONNECTED)
-                    wifiConnected = true
-                } else {
-                    Log.e(TAG, "Failed to connect to target Wi-Fi.")
-                    throw IOException("Wi-Fi connection failed")
-                }
-
-                // 2. TCP Connection
-                ensureActive()
-                setConnectionState(DeviceRepository.ConnectionState.CONNECTING_TCP)
-                if (tcpClient.connect()) {
-                    Log.i(TAG, "TCP socket connected.")
-                    tcpConnected = true
-                } else {
-                    Log.e(TAG, "Failed to connect TCP socket.")
-                    throw IOException("TCP connection failed")
-                }
-
-                // 3. Verify Device Version
-                ensureActive()
-                setConnectionState(DeviceRepository.ConnectionState.VERIFYING_DEVICE)
-                val version = verifyDeviceVersion()
-                if (version != null) {
-                    Log.i(TAG, "Device version verified: $version")
-                    versionVerified = true
-                } else {
-                    Log.e(TAG, "Failed to verify device version.")
-                    throw IOException("Device version verification failed")
-                }
-
-                // 4. Connection Successful - Start Communication Loop
-                ensureActive()
-                setConnectionState(DeviceRepository.ConnectionState.CONNECTED)
-                startDeviceCommunicationLoop() // Start listening and polling
-
-            } catch (e: CancellationException) {
-                Log.w(TAG, "Connection process cancelled.")
-                setConnectionState(DeviceRepository.ConnectionState.DISCONNECTED)
-                cleanupJobsAndState() // Clean up on cancellation
-            } catch (e: IOException) {
-                Log.e(TAG, "Connection process failed: ${e.message}")
-                setConnectionState(DeviceRepository.ConnectionState.CONNECTION_ERROR)
-                cleanupJobsAndState()
-            } catch (e: Exception) {
-                Log.e(TAG, "Unexpected error during connection: ${e.message}", e)
-                setConnectionState(DeviceRepository.ConnectionState.CONNECTION_ERROR)
-                cleanupJobsAndState()
-            }
-        }
-    }
-
-
-    override suspend fun disconnectFromDevice() {
-        Log.i(TAG, "Disconnecting from device...")
-        connectJob?.cancelAndJoin() // Cancel any ongoing connection attempt
-        deviceCommunicationJob?.cancelAndJoin() // Stop the communication loop
-        cleanupJobsAndState()
-        // Optionally disconnect from Wi-Fi if managed exclusively by the app
-        // wifiHelper.disconnectFromWifi()
-        Log.i(TAG, "Disconnect process complete.")
-    }
-
-    override suspend fun sendConfiguration(currentMa: Int, timeSec: Float, stack: Int): Boolean {
-        if (_connectionState.value != DeviceRepository.ConnectionState.CONNECTED) {
-            Log.w(TAG, "Cannot send config, not connected.")
-            return false
-        }
-
-        return executeCommandAndWaitForResponse(
-            command = "${Constants.CMD_SET_CONFIG},${formatCurrent(currentMa)},$stack,${timeSec}",
-            expectedResponsePrefix = Constants.RESPONSE_CONFIG_ACK_PREFIX,
-            timeout = Constants.READ_TIMEOUT_MS.toLong()
-        ) { response ->
-            // Optional: Validate response content matches sent values
-            when (val parsed = dataParser.parseResponse(response)) {
-                is DataParser.ParseResult.Success<*> -> {
-                    if (parsed.data is Map<*,*>) {
-                        val map = parsed.data as Map<String, Number?>
-                        val ackCurrent = map["SetAmper"]?.toInt()
-                        val ackStack = map["Stack"]?.toInt()
-                        val ackTime = map["Time"]?.toFloat()
-                        if (ackCurrent == currentMa && ackStack == stack && ackTime == timeSec) {
-                            currentConfiguredStack = stack // Store for progress calculation
-                            Log.d(TAG,"SetConfig acknowledged with matching values.")
-                            true
-                        } else {
-                            Log.w(TAG,"SetConfig acknowledged, but values mismatch! Resp: $map")
-                            false // Treat mismatch as failure? Yes.
-                        }
-                    } else {
-                        Log.w(TAG, "SetConfig acknowledged, but response format unexpected: ${parsed.data}")
-                        false
-                    }
-                }
-                is DataParser.ParseResult.Error -> {
-                    Log.w(TAG,"Error parsing SetConfig response: ${parsed.message}")
-                    false
-                }
-                else -> {
-                    Log.w(TAG,"Unexpected parse result for SetConfig response: $parsed")
-                    false
-                }
-            }
-        }
-    }
-
-    override suspend fun startMeasurement(): Boolean {
-        if (_connectionState.value != DeviceRepository.ConnectionState.CONNECTED) {
-            Log.w(TAG, "Cannot start measurement, not connected.")
-            return false
-        }
-        if (isMeasurementActive) {
-            Log.w(TAG, "Measurement is already active.")
-            return false // Or maybe return true if already active? Let's say false.
-        }
-
-        val success = executeCommandAndWaitForResponse(
-            command = Constants.CMD_START_MEASUREMENT,
-            expectedResponsePrefix = Constants.RESPONSE_START_ACK,
-            timeout = Constants.READ_TIMEOUT_MS.toLong() // Short timeout for ResStar
-        ) { response -> response.startsWith(Constants.RESPONSE_START_ACK) } // Simple check for ResStar
-
-        if (success) {
-            Log.i(TAG, "Measurement started successfully (ResStar received).")
-            isMeasurementActive = true
-            // Start requesting data periodically (handled in communication loop)
-            // Reset progress flow? Ensure it starts fresh.
-            // _measurementProgress.tryEmit(...) // Maybe emit a starting state?
-        } else {
-            Log.w(TAG, "Failed to start measurement (No ResStar or error).")
-        }
-        return success
-    }
-
-    // --- Internal Helper Functions ---
-
-    private suspend fun verifyDeviceVersion(): String? {
-        if (!tcpClient.isCurrentlyConnected()) return null
-        Log.d(TAG, "Sending Vers command...")
-        if (tcpClient.sendCommand(Constants.CMD_GET_VERSION)) {
-            // Wait for response, expect something like "VerX.Y"
-            repeat(Constants.MAX_CONNECTION_RETRIES) { attempt ->
-                val response = tcpClient.readLineWithTimeout(Constants.READ_TIMEOUT_MS.toLong())
-                if (response != null) {
-                    Log.d(TAG, "Received response for Vers: $response")
-                    val parsed = dataParser.parseResponse(response)
-                    if (parsed is DataParser.ParseResult.Success<*> && parsed.data is String) {
-                        // Check if it starts with Ver prefix for extra safety
-                        if (parsed.data.startsWith(Constants.RESPONSE_VERSION_PREFIX)) {
-                            return parsed.data // Return the full version string
-                        } else {
-                            Log.w(TAG, "Parsed version string does not start with '${Constants.RESPONSE_VERSION_PREFIX}': ${parsed.data}")
-                        }
-                    } else {
-                        Log.w(TAG, "Failed to parse version from response: $response, result: $parsed")
-                    }
-                } else {
-                    Log.w(TAG, "No response received for Vers (attempt ${attempt + 1})")
-                    delay(Constants.RETRY_DELAY_MS) // Wait before retrying read
-                }
-                if (!tcpClient.isCurrentlyConnected()) { // Stop retrying if connection lost
-                    Log.e(TAG, "Connection lost while waiting for Vers response.")
-                    return null
-                }
-            }
-        } else {
-            Log.e(TAG, "Failed to send Vers command.")
-        }
-        return null // Failed to verify
-    }
-
-    /**
-     * Starts the main loop for reading data from TCP and polling status.
-     * This job runs as long as the connection is intended to be active.
-     */
-    private suspend fun startDeviceCommunicationLoop() {
-        if (deviceCommunicationJob?.isActive == true) {
-            Log.w(TAG, "Communication loop already running.")
-            return
-        }
-        deviceCommunicationJob = externalScope.launch(Dispatchers.IO +
-                CoroutineExceptionHandler { _, throwable ->
-                    Log.e(TAG, "Error in communication loop: ${throwable.message}", throwable)
-                    setConnectionState(DeviceRepository.ConnectionState.DEVICE_ERROR) // Or CONNECTION_ERROR?
-
-                    // حالا فراخوانی از اینجا مجاز است چون داخل launch هستیم
-                    externalScope.launch {
-                        cleanupJobsAndState()
-                    }
-                }) {
-
-            Log.i(TAG, "Starting device communication loop...")
-            var consecutiveGetsFailures = 0
-            var lastGetsTime = 0L
-            var lastDataRequestTime = 0L
-
-            // Combined loop for reading incoming data and sending periodic commands
-            while (isActive && tcpClient.isCurrentlyConnected()) {
-                val currentTime = System.currentTimeMillis()
-
-                // --- Handle Incoming Data ---
-                // Use a short non-blocking read attempt (or check reader.ready())
-                // Let's stick to readLineWithTimeout with a short timeout for simplicity here.
-                // Note: This might interfere with specific response waiting logic.
-                val response = try {
-                    // Only read if not expecting a specific response from sendCommandAndWait
-                    if (!isAwaitingSpecificResponse) {
-                        // Use a shorter timeout here to avoid blocking the loop for too long
-                        tcpClient.readLineWithTimeout(50)
-                    } else {
-                        null // Don't read if another part of the code is waiting for a specific line
-                    }
-                } catch (e: IOException) {
-                    Log.e(TAG, "IOException while reading in loop: ${e.message}. Closing connection.")
-                    throw e // Let the exception handler deal with it
-                }
-
-                if (response != null && !isAwaitingSpecificResponse) {
-                    Log.d(TAG, "Loop received: $response")
-                    handleIncomingData(response)
-                    consecutiveGetsFailures = 0 // Reset failure count on any successful read
-                }
-
-                // --- Handle Periodic Commands ---
-                if (!isAwaitingSpecificResponse) { // Don't send Gets/Data if waiting for ResConf/ResStar etc.
-                    // Send 'Gets' periodically
-                    if (isPollingGets && (currentTime - lastGetsTime > Constants.POLLING_INTERVAL_MS)) {
-                        Log.v(TAG, "Sending Gets poll...")
-                        if (tcpClient.sendCommand(Constants.CMD_GET_STATUS)) {
-                            lastGetsTime = currentTime
-                            // Response handled by the reading part of the loop
-                        } else {
-                            Log.e(TAG, "Failed to send Gets command. Connection likely lost.")
-                            setConnectionState(DeviceRepository.ConnectionState.DEVICE_ERROR)
-                            break // Exit loop
-                        }
-                    }
-
-                    // Send 'Data' command periodically if measurement is active
-                    if (isMeasurementActive && (currentTime - lastDataRequestTime > Constants.DATA_REQUEST_INTERVAL_MS)) {
-                        Log.v(TAG, "Sending Data request...")
-                        if (tcpClient.sendCommand(Constants.CMD_REQUEST_DATA)) {
-                            lastDataRequestTime = currentTime
-                            // Response handled by the reading part of the loop
-                        } else {
-                            Log.e(TAG, "Failed to send Data request command. Connection likely lost.")
-                            setConnectionState(DeviceRepository.ConnectionState.DEVICE_ERROR)
-                            break // Exit loop
-                        }
-                    }
-                }
-
-                // Check for Gets timeout (if polling is active and no response received for a while)
-                if (isPollingGets && response == null && !isAwaitingSpecificResponse) {
-                    // If polling is active, we expect responses. If readLine times out repeatedly,
-                    // it might indicate a problem. This logic needs refinement.
-                    // Let's rely on the readLineWithTimeout within the polling logic instead.
-
-                    // Simpler check: If sendCommand fails above, we exit.
-                    // If readLine keeps returning null without IOException, TCP might be stuck.
-                    // Let's implement the 10 consecutive Gets failure logic based on *expected* responses.
-                    // This requires modifying the polling to wait for the 'State' response.
-                    // This makes the combined loop much more complex.
-
-                    // Alternative: Keep Gets polling simple send-only here.
-                    // Rely on handleIncomingData receiving 'State' responses. If none received
-                    // for N seconds while polling is active, declare error.
-
-                    // Let's stick to the explicit Gets polling with response waiting for now.
-                    if (isPollingGets && (currentTime - lastGetsTime > Constants.POLLING_INTERVAL_MS * 2)) { // If poll sent but no relevant response handled recently
-                        // Send Gets and wait for response explicitly here
-                        val status = pollDeviceStatus()
-                        if (status != null) {
-                            _deviceStatus.value = status
-                            consecutiveGetsFailures = 0
-                            lastGetsTime = currentTime // Update time on successful poll
-                        } else {
-                            consecutiveGetsFailures++
-                            Log.w(TAG, "Gets poll failed or timed out ($consecutiveGetsFailures/${Constants.MAX_GETS_FAILURES})")
-                            if (consecutiveGetsFailures >= Constants.MAX_GETS_FAILURES) {
-                                Log.e(TAG, "Max Gets poll failures reached. Assuming device error.")
-                                setConnectionState(DeviceRepository.ConnectionState.DEVICE_ERROR)
-                                break // Exit loop
-                            }
-                        }
-                    }
-
-                } else if (response == null && !isAwaitingSpecificResponse) {
-                    // Read timed out, but maybe okay if no polling/measurement active
-                    delay(50) // Small delay to prevent busy loop if idle
-                }
-
-            } // End while loop
-
-            Log.i(TAG, "Device communication loop finished.")
-            // Ensure state reflects disconnection if loop exited cleanly but disconnected
-            if (isActive && !tcpClient.isCurrentlyConnected() && _connectionState.value != DeviceRepository.ConnectionState.DEVICE_ERROR) {
-                setConnectionState(DeviceRepository.ConnectionState.CONNECTION_ERROR) // Or DISCONNECTED?
-            }
-        } // End launch
-        // Start polling after a short delay, assuming connection is stable
-        externalScope.launch {
-            delay(500) // Give time for connection to stabilize
-            isPollingGets = true // Enable polling
-        }
-    }
-
-    /**
-     * Handles parsing and reacting to messages received in the communication loop.
-     */
-    private suspend fun handleIncomingData(rawData: String) {
-        when (val result = dataParser.parseResponse(rawData)) {
-            is DataParser.ParseResult.Success<*> -> {
-                when (result.data) {
-                    is DeviceStatus -> {
-                        Log.v(TAG, "Parsed DeviceStatus: ${result.data}")
-                        _deviceStatus.value = result.data
-                        // Reset Gets failure count here? Yes, if a valid status is received.
-                        // Logic moved to explicit pollDeviceStatus()
-                    }
-                    is MeasurementPacket -> {
-                        Log.i(TAG, "Parsed MeasurementPacket: ID=${result.data.id}")
-                        _measurementResult.emit(result.data)
-                        isMeasurementActive = false // Measurement completes upon receiving Data packet
-                        // Stop requesting 'Data' command
-                        isPollingGets = true // Resume polling 'Gets'
-                    }
-                    is Pair<*, *> -> { // Assuming Pair<Int, Int> for BussyM
-                        if (result.data.first is Int && result.data.second is Int) {
-                            val stage = result.data.first as Int
-                            val repeat = result.data.second as Int
-                            Log.d(TAG, "Parsed Measurement Progress: Stage=$stage, Repeat=$repeat")
-                            val progressPercent = calculateProgress(stage, repeat, currentConfiguredStack)
-                            _measurementProgress.emit(
-                                DeviceRepository.MeasurementProgress(stage, repeat, currentConfiguredStack, progressPercent)
-                            )
-                        }
-                    }
-                    // Handle other success types if needed (e.g., version string if received unsolicited)
-                    else -> Log.d(TAG, "Received unhandled successful parse result: ${result.data}")
-                }
-            }
-            is DataParser.ParseResult.Error -> {
-                Log.w(TAG, "Parser error: ${result.message} for data: '${result.originalInput}'")
-                // Decide if this constitutes a device error or just ignores the line
-            }
-            DataParser.ParseResult.Ignore -> {
-                Log.d(TAG, "Parser ignored data line.")
-            }
-            DataParser.ParseResult.Incomplete -> {
-                Log.d(TAG, "Parser reported incomplete data.")
-            }
-        }
-    }
-
-    /**
-     * Sends Gets command and waits for a valid DeviceStatus response.
-     * Used for explicit polling check.
-     */
-    private suspend fun pollDeviceStatus(): DeviceStatus? {
-        if (!tcpClient.isCurrentlyConnected()) return null
-
-        isAwaitingSpecificResponse = true // Pause general reading
         try {
-            if (tcpClient.sendCommand(Constants.CMD_GET_STATUS)) {
-                // Wait for a response that parses to DeviceStatus
-                val status = readUntilParsed<DeviceStatus>(Constants.READ_TIMEOUT_MS.toLong())
-                if (status == null) {
-                    Log.w(TAG, "Did not receive valid DeviceStatus after Gets command.")
-                }
-                return status
-            } else {
-                Log.e(TAG, "Failed to send Gets command for polling.")
-                return null
-            }
-        } finally {
-            isAwaitingSpecificResponse = false // Resume general reading
-        }
-    }
+            socket = Socket()
+            socket!!.connect(InetSocketAddress(host, port), CONNECT_TIMEOUT_MS)
 
+            writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream(), StandardCharsets.UTF_8), true)
+            reader = BufferedReader(InputStreamReader(socket!!.getInputStream(), StandardCharsets.UTF_8))
+            Log.i(TAG, "Socket connected. Verifying communication with VERS command...")
 
-    /**
-     * Helper function to send a command, then read lines until a specific condition is met
-     * or timeout occurs. Sets isAwaitingSpecificResponse flag.
-     * @param command The command to send.
-     * @param expectedResponsePrefix Optional prefix to quickly check if the response might be the one we want.
-     * @param timeout Total timeout for waiting for the response.
-     * @param validation Lambda function to validate if the received line is the expected response.
-     * @return True if the validated response was received, false otherwise (timeout, error, validation failed).
-     */
-    private suspend fun executeCommandAndWaitForResponse(
-        command: String,
-        expectedResponsePrefix: String?,
-        timeout: Long,
-        validation: (String) -> Boolean
-    ): Boolean {
-        if (!tcpClient.isCurrentlyConnected()) return false
-        isAwaitingSpecificResponse = true // Pause the main loop's reader/poller
-        var success = false
-        try {
-            Log.d(TAG, "Executing command: $command, waiting for response (timeout ${timeout}ms)")
-            if (!tcpClient.sendCommand(command)) {
-                Log.e(TAG, "Failed to send command '$command'.")
-                return false // Exit early if send fails
-            }
+            // Send VERS and wait for response using the helper
+            val versResult = sendCommandAndReadResponse(VERS_COMMAND, Companion.READ_TIMEOUT_MS)
 
-            val startTime = System.currentTimeMillis()
-            while (System.currentTimeMillis() - startTime < timeout) {
-                // Check connection before attempting read
-                if (!tcpClient.isCurrentlyConnected()) {
-                    Log.e(TAG,"Connection lost while waiting for response to '$command'.")
-                    break // Exit loop if disconnected
-                }
-
-                val remainingTime = timeout - (System.currentTimeMillis() - startTime)
-                if (remainingTime <= 0) break // Exit if timeout exceeded before read attempt
-
-                val response = tcpClient.readLineWithTimeout(remainingTime)
-
-                if (response != null) {
-                    Log.d(TAG, "Response received while waiting: $response")
-                    // Basic check using prefix if provided
-                    if (expectedResponsePrefix == null || response.startsWith(expectedResponsePrefix)) {
-                        // Full validation
-                        if (validation(response)) {
-                            Log.d(TAG,"Command '$command' successfully acknowledged.")
-                            success = true
-                            break // Expected response received
-                        } else {
-                            Log.w(TAG,"Response received but failed validation for '$command': $response")
-                            // Continue waiting for the correct response until timeout
-                        }
+            versResult.fold(
+                onSuccess = { response ->
+                    if (response.startsWith("Ver")) { // Adapt based on actual response format
+                        Log.i(TAG, "Connection successful and verified. Device Info: $response")
+                        _connectionState.value = ConnectionState.Connected(response)
+                        Result.success(Unit) // Fold returns this Result
                     } else {
-                        Log.d(TAG,"Ignoring unrelated response while waiting for '$expectedResponsePrefix': $response")
-                        // Continue waiting
+                        Log.w(TAG, "Connection verified but VERS response unexpected: $response")
+                        disconnectInternal()
+                        val error = IOException("Invalid VERS response: $response")
+                        _connectionState.value = ConnectionState.Failed(error)
+                        Result.failure(error) // Fold returns this Result
                     }
-                } else {
-                    // readLineWithTimeout returned null (timeout or error during read)
-                    Log.w(TAG,"readLine timed out or returned null while waiting for response to '$command'.")
-                    // The outer loop condition will handle the overall timeout.
-                    // If readLine timed out, check connection again.
-                    if (!tcpClient.isCurrentlyConnected()) {
-                        Log.e(TAG,"Connection lost after read timeout while waiting for response to '$command'.")
-                        break
-                    }
-                    // Break here as readLine already waited for remainingTime
-                    break
+                },
+                onFailure = { exception ->
+                    Log.e(TAG, "Failed to get VERS response after connection", exception)
+                    disconnectInternal()
+                    _connectionState.value = ConnectionState.Failed(exception)
+                    Result.failure(exception) // Fold returns this Result
                 }
-                // Small delay to prevent busy-waiting if continuously receiving unrelated messages
-                delay(50)
-            }
+            ) // End of fold - the result of fold is the result of the connect function's try block
 
-            if (!success) {
-                Log.w(TAG, "Timeout or error occurred while waiting for response to command '$command'.")
-            }
-            return success
-
+        } catch (e: SocketTimeoutException) {
+            Log.e(TAG, "Connection timed out", e)
+            disconnectInternal()
+            _connectionState.value = ConnectionState.Failed(e)
+            Result.failure(e) // Catch block returns this Result
+        } catch (e: IOException) {
+            Log.e(TAG, "Connection IO error", e)
+            disconnectInternal()
+            _connectionState.value = ConnectionState.Failed(e)
+            Result.failure(e) // Catch block returns this Result
         } catch (e: Exception) {
-            Log.e(TAG, "Exception during executeCommandAndWaitForResponse for '$command': ${e.message}", e)
-            return false
-        }
-        finally {
-            isAwaitingSpecificResponse = false // IMPORTANT: Resume the main loop reader/poller
-            Log.v(TAG,"Resuming general communication loop.")
+            Log.e(TAG, "Unexpected connection error", e)
+            disconnectInternal()
+            _connectionState.value = ConnectionState.Failed(e)
+            Result.failure(e) // Catch block returns this Result
         }
     }
+
+    override suspend fun disconnect() = withContext(Dispatchers.IO) {
+        Log.d(TAG, "Disconnect requested.")
+        disconnectInternal()
+    }
+
+    override suspend fun requestDeviceStatus(): Result<DeviceStatus> = withContext(Dispatchers.IO) {
+        val result = sendCommandAndReadResponse(GETS_COMMAND, Companion.READ_TIMEOUT_MS)
+        val parsedResult = result.fold(
+            onSuccess = { response -> parseDeviceStatus(response) },
+            onFailure = { Result.failure(it) }
+        )
+        // Update the state flow regardless of success/failure
+        _latestDeviceStatus.value = parsedResult
+        return@withContext parsedResult
+    }
+
+    override suspend fun applyConfigAndStartMeasurement(config: SimipConfig): Result<Unit> = withContext(Dispatchers.IO) {
+        // 1. Send SetConfig command
+        val setConfigCommand = formatSetConfigCommand(config)
+        Log.d(TAG, "Sending SetConfig: $setConfigCommand")
+        val confResult = sendCommandAndReadResponse(setConfigCommand, Companion.READ_TIMEOUT_MS)
+
+        val confValidation = confResult.fold(
+            onSuccess = { response -> validateResConf(response, config) },
+            onFailure = { Result.failure<Unit>(it) }
+        )
+
+        if (confValidation.isFailure) {
+            Log.e(TAG, "SetConfig failed or response invalid.", confValidation.exceptionOrNull())
+            return@withContext Result.failure(confValidation.exceptionOrNull() ?: IOException("SetConfig failed"))
+        }
+
+        Log.i(TAG, "SetConfig successful (ResConf validated). Sending Star...")
+
+        // 2. Send Star command
+        val starResult = sendCommandAndReadResponse(STAR_COMMAND, Companion.READ_TIMEOUT_MS)
+        val starValidation = starResult.fold(
+            onSuccess = { response -> validateResStar(response) },
+            onFailure = { Result.failure<Unit>(it) }
+        )
+
+        if (starValidation.isFailure) {
+            Log.e(TAG, "Star command failed or response invalid.", starValidation.exceptionOrNull())
+            return@withContext Result.failure(starValidation.exceptionOrNull() ?: IOException("Star failed"))
+        }
+
+        Log.i(TAG, "Star command successful (ResStar validated). Measurement should start.")
+        return@withContext Result.success(Unit)
+    }
+
+    override suspend fun requestSingleMeasurement(): Result<MeasurementData> = withContext(Dispatchers.IO) {
+        Log.v(TAG, "Requesting single measurement data...")
+        val result = sendCommandAndReadResponse(DATA_COMMAND, Companion.READ_TIMEOUT_MS)
+        val parsedResult = result.fold(
+            onSuccess = { response -> parseMeasurementData(response) },
+            onFailure = { Result.failure(it) }
+        )
+        // Emit the result (success or failure) to the SharedFlow
+        _measurementDataFlow.tryEmit(parsedResult) // Use tryEmit for SharedFlow
+
+        // Also return the result for immediate feedback if needed
+        return@withContext parsedResult
+    }
+
+    // ====================================================================================
+    // Internal Helper Functions
+    // ====================================================================================
 
     /**
-     * Reads lines from TcpClient until a line successfully parses into the target type T, or timeout.
+     * Sends a command, waits for a single-line response with timeout, and handles errors.
+     * This is the core communication function.
      */
-    private suspend inline fun <reified T> readUntilParsed(timeout: Long): T? {
-        val startTime = System.currentTimeMillis()
-        while (System.currentTimeMillis() - startTime < timeout) {
-            if (!tcpClient.isCurrentlyConnected()) break
-            val remainingTime = timeout - (System.currentTimeMillis() - startTime)
-            if (remainingTime <= 0) break
-            val response = tcpClient.readLineWithTimeout(remainingTime)
-            if (response != null) {
-                when (val parsed = dataParser.parseResponse(response)) {
-                    is DataParser.ParseResult.Success<*> -> {
-                        if (parsed.data is T) {
-                            return parsed.data // Found the target type
-                        }
+    private suspend fun sendCommandAndReadResponse(command: String, timeoutMs: Long): Result<String> {
+        // Check connection status first
+        if (socket?.isConnected != true || writer == null || reader == null) {
+            val error = IOException("Not connected. Cannot send command: $command")
+            // Log using the recommended way (with Throwable)
+            Log.w(TAG, "Failed to send command because not connected.", error)
+            // Only change state if not already failed/disconnected
+            if (_connectionState.value is ConnectionState.Connected || _connectionState.value is ConnectionState.Connecting) {
+                _connectionState.value = ConnectionState.Failed(error)
+                // Consider if disconnect is needed here, depends on strategy
+                // disconnectInternal()
+            }
+            // Return failure directly
+            return Result.failure(error)
+        }
+
+        // Execute network operation within try-catch
+        // No 'return' needed before 'try'; the try-catch block itself is an expression
+
+          try {
+            Log.d(TAG, "Sending command: $command")
+            writer?.println(command) // Assumes command includes \n\r
+            writer?.flush() // Ensure data is sent
+
+            // Robust reading with timeout
+            var responseLine: String? = null
+            // 'jobResult' will hold the String? returned by the block, or null if timeout occurred
+            val jobResult = withTimeoutOrNull(timeoutMs) {
+                // Basic loop to read a single line, ignoring potential blanks (adapt if multi-line needed)
+                while (isActive) { // Check coroutine status
+                    val line = reader?.readLine() // Blocking call - relies on underlying socket timeout or data
+                    if (line != null) {
+                        responseLine = line // Store the received line
+                        break // Exit loop once a line is read
                     }
-                    // Ignore errors or other types for this specific wait
-                    else -> {}
+                    // If readLine returns null, it usually means end-of-stream (connection closed)
+                    // Throw exception to handle this case within the try-catch
+                    throw IOException("End of stream reached while reading response for $command (connection closed?)")
+                    // Note: Removed the busy-wait loop with delay(20) as readLine() should block until data or timeout/error.
+                    // Relying on withTimeoutOrNull and socket's potential SO_TIMEOUT is standard.
                 }
+                 responseLine // Return the read line from the block
+            }
+
+            // Check if timeout occurred (withTimeoutOrNull returned null)
+            if (jobResult == null) {
+                throw SocketTimeoutException("Timeout ($timeoutMs ms) waiting for response to command: $command")
+            }
+
+            // If we reach here, timeout did not occur, and jobResult holds the response line
+            responseLine = jobResult
+            Log.d(TAG, "Received response: $responseLine")
+               Result.success(responseLine) // Try block evaluates to Success
+
+        } catch (e: TimeoutCancellationException) {
+            // This specifically catches the timeout from withTimeoutOrNull
+            Log.e(TAG, "Coroutine Timeout waiting for response to command $command", e)
+              return Result.failure(SocketTimeoutException("Timeout waiting for response: ${e.message}"))
+        } catch (e: SocketTimeoutException) {
+            // This catches timeouts from socket operations if socket.soTimeout was set
+            Log.e(TAG, "Socket operation timed out for command $command", e)
+              return Result.failure(e)
+        } catch (e: IOException) {
+            // Catch connection closed during read or other IO errors
+            Log.e(TAG, "IO Error during send/receive for command $command", e)
+            // Critical error, likely disconnect
+            _connectionState.value = ConnectionState.Failed(e)
+            disconnectInternal()
+              return Result.failure(e)
+        } catch (e: Exception) {
+            // Catch any other unexpected errors
+            Log.e(TAG, "Unexpected error during send/receive for $command", e)
+            _connectionState.value = ConnectionState.Failed(e)
+            disconnectInternal()
+              return   Result.failure(e)
+        }
+        return Result.failure(IllegalStateException("Should not be reached after try-catch expression"))
+    }
+
+
+    /**
+     * Closes socket and streams safely, updating connection state.
+     */
+    private fun disconnectInternal() {
+        Log.i(TAG, "Closing connection resources.")
+        // Close resources in reverse order of creation, ignoring errors during close
+        try { writer?.close() } catch (e: Exception) { Log.e(TAG, "Error closing writer", e) }
+        try { reader?.close() } catch (e: Exception) { Log.e(TAG, "Error closing reader", e) }
+        try { socket?.close() } catch (e: Exception) { Log.e(TAG, "Error closing socket", e) }
+
+        writer = null
+        reader = null
+        socket = null
+
+        // Only update state if it wasn't already Failed or Disconnected
+        if (_connectionState.value !is ConnectionState.Failed && _connectionState.value !is ConnectionState.Disconnected) {
+            _connectionState.value = ConnectionState.Disconnected
+        }
+        // Reset status to indicate disconnection
+        _latestDeviceStatus.value = Result.failure(IOException("Disconnected"))
+    }
+
+    // --- Command Formatting ---
+    private fun formatSetConfigCommand(config: SimipConfig): String {
+        val formattedCurrent = config.current.toString().padStart(3, '0')
+        return "SetConfig,$formattedCurrent,${config.stack},${config.time}\n\r" // Ensure line endings
+    }
+
+    // --- Response Parsers (with detailed error handling) ---
+
+    private fun parseDeviceStatus(response: String): Result<DeviceStatus> {
+        Log.d(TAG, "Parsing DeviceStatus: $response")
+        val parts = response.split(',')
+        if (parts.size < 9) {
+            return Result.failure(ParsingException("Invalid 'Gets' format: Expected >=9 parts, got ${parts.size} in '$response'"))
+        }
+        return try {
+            Result.success(
+                DeviceStatus(
+                    state = parts[0].ifEmpty { null },
+                    fe = parts[1].ifEmpty { null },
+                    setAmper = parts[2].toDoubleOrNull(),
+                    stack = parts[3].toIntOrNull(),
+                    time = parts[4].toIntOrNull(),
+                    no = parts[5].toIntOrNull(),
+                    voltageBat = parts[6].toDoubleOrNull(),
+                    temperature = parts[7].toDoubleOrNull(),
+                    measureMNvolt = parts[8].toDoubleOrNull()
+                )
+            )
+        } catch (e: NumberFormatException) {
+            Result.failure(ParsingException("Number format error parsing 'Gets': '$response'", e))
+        } catch (e: Exception) {
+            Result.failure(ParsingException("Generic error parsing 'Gets': '$response'", e))
+        }
+    }
+
+    private fun parseMeasurementData(response: String): Result<MeasurementData> {
+        Log.d(TAG, "Parsing MeasurementData: $response")
+        if (!response.startsWith("Data,")) {
+            return Result.failure(ParsingException("Invalid 'Data' prefix: '$response'"))
+        }
+        val parts = response.substring(5).split(',') // Remove "Data,"
+
+        // Expecting Id + 9 fixed fields + 20 IP = 30 parts
+        if (parts.size < 30) {
+            return Result.failure(ParsingException("Invalid 'Data' format: Expected >=30 parts after 'Data,', got ${parts.size} in '$response'"))
+        }
+
+        try {
+            val id = parts[0].toInt() // Throw if not Int
+            val setAmper = parts[1].toDouble()
+            val stack = parts[2].toInt()
+            val time = parts[3].toInt()
+            // parts[4] skipped ('not' field)
+            val voltageBat = parts[5].toDouble()
+            val temperature = parts[6].toDouble()
+            val contactResistance = parts[7].toDouble()
+            val measuredAmper = parts[8].toDouble()
+            val measuredSP = parts[9].toDouble()
+            val measuredPotential = parts[10].toDouble() // deltaV
+
+            val ipDecay = mutableListOf<Double?>()
+            for (i in 11 until minOf(parts.size, 31)) { // Indices 11 to 30
+                // Allow nulls for individual IP values if they fail parsing
+                ipDecay.add(parts[i].toDoubleOrNull())
+            }
+            // Ensure exactly 20 values, padding with null if response was shorter
+            while (ipDecay.size < 20) {
+                ipDecay.add(null)
+            }
+
+            return Result.success(
+                MeasurementData(
+                    id = id, setAmper = setAmper, stack = stack, time = time,
+                    voltageBat = voltageBat, temperature = temperature,
+                    contactResistance = contactResistance, measuredAmper = measuredAmper,
+                    measuredSP = measuredSP, measuredPotential = measuredPotential,
+                    ipDecay = ipDecay
+                )
+            )
+        } catch (e: NumberFormatException) {
+            Result.failure<MeasurementData>(ParsingException("Number format error parsing 'Data': '$response'", e))
+        } catch (e: IndexOutOfBoundsException) {
+            Result.failure(ParsingException("Index out of bounds error parsing 'Data' (likely missing fields): '$response'", e))
+        } catch (e: Exception) {
+            Result.failure(ParsingException("Generic error parsing 'Data': '$response'", e))
+        }
+        return Result.failure(IllegalStateException("Should not be reached after try-catch expression"))
+    }
+
+    // --- Response Validators ---
+
+    private fun validateResConf(response: String, expectedConfig: SimipConfig): Result<Unit> {
+        Log.d(TAG, "Validating ResConf: $response")
+        if (!response.startsWith("ResConf,")) {
+            return Result.failure(ParsingException("Invalid 'ResConf' prefix: '$response'"))
+        }
+        val parts = response.substring(8).split(',')
+        if (parts.size != 3) {
+            return Result.failure(ParsingException("Invalid 'ResConf' format: Expected 3 parts, got ${parts.size} in '$response'"))
+        }
+        try {
+            val respCurrentStr = parts[0] // Keep as string for comparison with formatted expected value
+            val respStack = parts[1].toInt()
+            val respTime = parts[2].toInt()
+            val expectedFormattedCurrentStr = expectedConfig.current.toString().padStart(3, '0')
+
+            if (respCurrentStr == expectedFormattedCurrentStr && respStack == expectedConfig.stack && respTime == expectedConfig.time) {
+                return Result.success(Unit)
             } else {
-                // readLine timed out or returned null
-                break
+                return Result.failure(ParsingException("Mismatch in 'ResConf': Expected $expectedFormattedCurrentStr,${expectedConfig.stack},${expectedConfig.time} Got $respCurrentStr,$respStack,$respTime in '$response'"))
             }
-        }
-        return null // Timeout or disconnected
-    }
-
-
-    private fun formatCurrent(currentMa: Int): String {
-        // Format to 3 digits with leading zeros (e.g., 80 -> "080", 500 -> "500")
-        return currentMa.toString().padStart(3, '0')
-    }
-
-    private fun calculateProgress(stage: Int, repeat: Int, totalStack: Int): Int {
-        if (totalStack <= 0) return 0
-        // Assuming 'repeat' from BussyM is 0-indexed (0 to stack-1)
-        // Formula: (stage + 3 * repeat) / (3 * totalStack)
-        val numerator = (stage + 3 * repeat).toDouble()
-        val denominator = (3 * totalStack).toDouble()
-        if (denominator == 0.0) return 0
-        val progress = (numerator / denominator * 100).toInt()
-        return progress.coerceIn(0, 100) // Ensure progress is between 0 and 100
-    }
-
-
-    private suspend fun cleanupJobsAndState() {
-        Log.d(TAG, "Cleaning up jobs and state...")
-        // Cancel jobs first
-        connectJob?.cancel()
-        deviceCommunicationJob?.cancel()
-        connectJob = null
-        deviceCommunicationJob = null
-
-        // Reset state variables
-        isPollingGets = false
-        isAwaitingSpecificResponse = false
-        isMeasurementActive = false
-
-        // Reset flows to initial state
-        setConnectionState(DeviceRepository.ConnectionState.DISCONNECTED) // Set state *after* cancelling jobs
-        _deviceStatus.value = DeviceStatus.DISCONNECTED // Reset status
-        // Reset version/ssid?
-        // _deviceVersion.value = null // Handled by ConnectionState change implicitly?
-        // _connectedSsid.value = null // Handled by WifiHelper or ConnectionState change
-
-        // Close TCP connection
-        tcpClient.disconnect()
-
-        Log.d(TAG, "Cleanup complete.")
-    }
-
-    // Helper to safely update connection state flow
-    private fun setConnectionState(newState: DeviceRepository.ConnectionState) {
-        if (_connectionState.value != newState) {
-            _connectionState.value = newState
-            Log.i(TAG, "Connection state changed to: $newState")
-            // Reset device status if disconnected or error
-            if (newState == DeviceRepository.ConnectionState.DISCONNECTED ||
-                newState == DeviceRepository.ConnectionState.CONNECTION_ERROR ||
-                newState == DeviceRepository.ConnectionState.DEVICE_ERROR) {
-                _deviceStatus.value = DeviceStatus.DISCONNECTED // Reset status model too
-                isPollingGets = false // Ensure polling stops
-                isMeasurementActive = false
-            }
+        } catch (e: NumberFormatException) {
+            return Result.failure(ParsingException("Number format error validating 'ResConf': '$response'", e))
+        } catch (e: Exception) {
+            return Result.failure(ParsingException("Generic error validating 'ResConf': '$response'", e))
         }
     }
 
-    // Need to initialize WifiHelper listener if it provides connection status updates via Flow
-    init {
-        externalScope.launch {
-            wifiHelper.wifiStateFlow.collect { state ->
-                // Update _connectionState based on WifiHelper state changes if needed
-                // e.g., when scanning, connecting, or connected to the target network.
-                // This requires WifiHelper to expose its state.
-                Log.d(TAG,"Received WifiHelper State: $state") // Placeholder
-                // Example: If WifiHelper reports connection lost, trigger disconnect.
-                // if (state == WifiHelper.WifiState.DISCONNECTED_FROM_TARGET) {
-                //     if (_connectionState.value != DeviceRepository.ConnectionState.DISCONNECTED) {
-                //         Log.w(TAG, "Detected Wi-Fi disconnection from target. Initiating full disconnect.")
-                //         disconnectFromDevice()
-                //     }
-                // }
-            }
+    private fun validateResStar(response: String): Result<Unit> {
+        Log.d(TAG, "Validating ResStar: $response")
+        return if (response.trim() == "ResStar") { // Use trim() just in case of whitespace
+            Result.success(Unit)
+        } else {
+            Result.failure(ParsingException("Invalid 'ResStar' response: Expected 'ResStar', Got '$response'"))
         }
     }
 
+    companion object {
+        private const val READ_TIMEOUT_MS: Long = 3000L // Corrected type to Long
+    }
 }
