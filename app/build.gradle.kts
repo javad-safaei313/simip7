@@ -102,7 +102,8 @@ dependencies {
     testImplementation("junit:junit:4.13.2") // نسخه‌های استاندارد تست معمولاً نیازی به تغییر ندارند
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
+    implementation("androidx.activity:activity-ktx:1.8.2")
     // --- MultiDex (اگر minSdk < 26 است و نیاز بود، نگه دارید) ---
     // implementation("androidx.multidex:multidex:2.0.1")
 }

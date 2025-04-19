@@ -1,5 +1,6 @@
 package com.simip.data.db
 
+import androidx.room.TypeConverters
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
@@ -7,6 +8,7 @@ import androidx.room.RoomDatabase
 import com.simip.data.model.Measurement
 
 @Database(entities = [Measurement::class], version = 1, exportSchema = false)
+@TypeConverters(Converters::class) // <-- این Annotation اضافه شد
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun measurementDao(): MeasurementDao
